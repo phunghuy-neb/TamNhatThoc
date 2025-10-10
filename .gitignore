@@ -42,6 +42,9 @@ dist/
 nbdist/
 .nb-gradle/
 
+# ANT dependencies
+lib/
+
 # IntelliJ IDEA
 .idea/
 *.iml
