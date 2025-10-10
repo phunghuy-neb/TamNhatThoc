@@ -1,0 +1,420 @@
+[{
+  "_id": {
+    "$oid": "68e8f3d849f4b075b5584da8"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 2,
+  "winner_id": "-792513650",
+  "match_duration": 27,
+  "created_at": {
+    "$date": "2025-10-10T11:54:00.568Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e8f8ff6a7edb23d538ac77"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 33,
+  "player2_score": 0,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T12:15:59.175Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e8fb3a14278000e62ab7b5"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 0,
+  "player2_score": 1,
+  "winner_id": "-787716338",
+  "match_duration": 18,
+  "created_at": {
+    "$date": "2025-10-10T12:25:30.903Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e8fd1081159f0a022d51ea"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 64,
+  "player2_score": 0,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T12:33:20.478Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e9084951c7491f365bb1f6"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 60,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T13:21:13.812Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e90d07d41f5d2852738d4e"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 4,
+  "player2_score": 14,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T13:41:27.436Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e90fcd2a1353200875ee73"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 5,
+  "winner_id": "-792513650",
+  "match_duration": 53,
+  "created_at": {
+    "$date": "2025-10-10T13:53:17.918Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e916e71f6f501a84d41752"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 8,
+  "winner_id": "-792513650",
+  "match_duration": 21,
+  "created_at": {
+    "$date": "2025-10-10T14:23:35.329Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e919c032516b066de697a2"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 5,
+  "player2_score": 0,
+  "winner_id": "-792513650",
+  "match_duration": 19,
+  "created_at": {
+    "$date": "2025-10-10T14:35:44.885Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91b26b60dd57f47d94ec6"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 4,
+  "player2_score": 0,
+  "winner_id": "-792513650",
+  "match_duration": 11,
+  "created_at": {
+    "$date": "2025-10-10T14:41:42.954Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91c1183c3df10de342783"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 2,
+  "winner_id": "-792513650",
+  "match_duration": 10,
+  "created_at": {
+    "$date": "2025-10-10T14:45:37.139Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91cd0c929014cedee7258"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 2,
+  "winner_id": "-792513650",
+  "match_duration": 8,
+  "created_at": {
+    "$date": "2025-10-10T14:48:48.537Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91d47bf696d0dcfc13a88"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 1,
+  "player2_score": 0,
+  "winner_id": "-792513650",
+  "match_duration": 6,
+  "created_at": {
+    "$date": "2025-10-10T14:50:47.504Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91eebd734b023e78e9fc4"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 66,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T14:57:47.190Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e91f52d734b023e78e9fc5"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 6,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 15,
+  "created_at": {
+    "$date": "2025-10-10T14:59:30.504Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e920ef6b91fc5e514cc5e7"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 4,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 124,
+  "created_at": {
+    "$date": "2025-10-10T15:06:23.363Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e9253f5b7fa623fd2eaaac"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 5,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:24:47.457Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e9273d5b7fa623fd2eaaad"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 1,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:33:17.404Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e927d35b7fa623fd2eaaae"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 0,
+  "player2_score": 0,
+  "winner_id": null,
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:35:47.163Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e929b3097cbf3f37dfcd86"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 75,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:43:47.593Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92a7b22ce6a21ad76d087"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 0,
+  "player2_score": 50,
+  "winner_id": "-787716338",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:47:07.763Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92b1b22ce6a21ad76d088"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 0,
+  "player2_score": 2,
+  "winner_id": "-787716338",
+  "match_duration": 121,
+  "created_at": {
+    "$date": "2025-10-10T15:49:47.871Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92d0b584e0d66e8c31a50"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 14,
+  "player2_score": 7,
+  "winner_id": "-792513650",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T15:58:03.115Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92d72584e0d66e8c31a51"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 50,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 80,
+  "created_at": {
+    "$date": "2025-10-10T15:59:46.774Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92e28584e0d66e8c31a52"
+  },
+  "player1_id": "-792513650",
+  "player2_id": "-787716338",
+  "player1_score": 0,
+  "player2_score": 2,
+  "winner_id": "-787716338",
+  "match_duration": 121,
+  "created_at": {
+    "$date": "2025-10-10T16:02:48.035Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e92fa842120e136debfbfe"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 10,
+  "winner_id": "-792513650",
+  "match_duration": 17,
+  "created_at": {
+    "$date": "2025-10-10T16:09:12.793Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e9303542120e136debfbff"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 1,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 120,
+  "created_at": {
+    "$date": "2025-10-10T16:11:33.286Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e93262cd67b3019947c5ba"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 0,
+  "player2_score": 10,
+  "winner_id": "-792513650",
+  "match_duration": 20,
+  "created_at": {
+    "$date": "2025-10-10T16:20:50.796Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e93292cd67b3019947c5bb"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 2,
+  "player2_score": 0,
+  "winner_id": "-787716338",
+  "match_duration": 30,
+  "created_at": {
+    "$date": "2025-10-10T16:21:38.914Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e934809623342d06327099"
+  },
+  "player1_id": "-787716338",
+  "player2_id": "-792513650",
+  "player1_score": 3,
+  "player2_score": 3,
+  "winner_id": null,
+  "match_duration": 30,
+  "created_at": {
+    "$date": "2025-10-10T16:29:52.510Z"
+  }
+}]

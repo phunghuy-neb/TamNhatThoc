@@ -1,0 +1,85 @@
+[{
+  "_id": {
+    "$oid": "68e7f5c8caa799555d1fc2ba"
+  },
+  "username": "admin",
+  "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+  "email": "admin@tamnhatthoc.com",
+  "total_score": 0,
+  "total_wins": 0,
+  "total_losses": 0,
+  "total_draws": 0,
+  "win_rate": 0,
+  "is_admin": true,
+  "created_at": {
+    "$date": "2025-10-09T17:50:00.581Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e7f5c8caa799555d1fc2bb"
+  },
+  "username": "player1",
+  "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+  "email": "player1@test.com",
+  "total_score": 1500,
+  "total_wins": 45,
+  "total_losses": 30,
+  "total_draws": 5,
+  "win_rate": 56.25,
+  "is_admin": false,
+  "created_at": {
+    "$date": "2025-10-09T17:50:00.608Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e7f5c8caa799555d1fc2bc"
+  },
+  "username": "player2",
+  "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+  "email": "player2@test.com",
+  "total_score": 2000,
+  "total_wins": 60,
+  "total_losses": 20,
+  "total_draws": 0,
+  "win_rate": 75,
+  "is_admin": false,
+  "created_at": {
+    "$date": "2025-10-09T17:50:00.608Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e8f27d49f4b075b5584da6"
+  },
+  "username": "player3",
+  "password": "49dc52e6bf2abe5ef6e2bb5b0f1ee2d765b922ae6cc8b95d39dc06c21c848f8c",
+  "email": "",
+  "total_score": 217,
+  "total_wins": 13,
+  "total_losses": 14,
+  "total_draws": 2,
+  "win_rate": 44.827586206896555,
+  "is_admin": false,
+  "created_at": {
+    "$date": "2025-10-10T11:48:13.303Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68e8f31e49f4b075b5584da7"
+  },
+  "username": "player4",
+  "password": "49dc52e6bf2abe5ef6e2bb5b0f1ee2d765b922ae6cc8b95d39dc06c21c848f8c",
+  "email": "",
+  "total_score": 224,
+  "total_wins": 14,
+  "total_losses": 13,
+  "total_draws": 2,
+  "win_rate": 48.275862068965516,
+  "is_admin": false,
+  "created_at": {
+    "$date": "2025-10-10T11:50:54.333Z"
+  }
+}]
