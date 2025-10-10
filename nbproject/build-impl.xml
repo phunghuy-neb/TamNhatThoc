@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+*** GENERATED FROM project.xml - DO NOT EDIT  ***
+***         EDIT ../build.xml INSTEAD         ***
+-->
+<project name="TamNhatThoc-impl" default="default" basedir="..">
+    <fail message="Please build using Ant 1.8.0 or higher.">
+        <condition>
+            <not>
+                <antversion atleast="1.8.0"/>
+            </not>
+        </condition>
+    </fail>
+    <target name="default" depends="test,jar,javadoc"/>
+    <target name="pre-init">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="init-private" depends="pre-init">
+        <property file="nbproject/private/private.properties"/>
+    </target>
+    <target name="init-user" depends="init-private">
+        <property file="${user.properties.file}"/>
+        <!-- The two properties below are usually overridden -->
+        <!-- by the active platform. Just a fallback. -->
+        <property name="default.javac.source" value="1.4"/>
+        <property name="default.javac.target" value="1.4"/>
+    </target>
+    <target name="init-project" depends="init-user">
+        <property file="nbproject/project.properties"/>
+    </target>
+    <target name="do-init" depends="init-project">
+        <available file="${manifest.file}" property="manifest.available"/>
+        <condition property="splashscreen.available">
+            <and>
+                <not>
+                    <equals arg1="${application.splash}" arg2="" trim="true"/>
+                </not>
+                <available file="${application.splash}"/>
+            </and>
+        </condition>
+        <condition property="main.class.available">
+            <and>
+                <isset property="main.class"/>
+                <not>
+                    <equals arg1="${main.class}" arg2="" trim="true"/>
+                </not>
+            </and>
+        </condition>
+        <condition property="profile.available">
+            <and>
+                <isset property="javac.profile"/>
+                <length string="${javac.profile}" when="greater" length="0"/>
+                <matches pattern="1\.[89](\..*)?" string="${javac.source}"/>
+            </and>
+        </condition>
+        <condition property="do.archive">
+            <not>
+                <istrue value="${jar.archive.disabled}"/>
+            </not>
+        </condition>
+        <condition property="do.mkdist">
+            <and>
+                <isset property="do.archive"/>
+                <isset property="libs.CopyLibs.classpath"/>
+                <not>
+                    <istrue value="${mkdist.disabled}"/>
+                </not>
+            </and>
+        </condition>
+        <condition property="do.archive+manifest.available">
+            <and>
+                <isset property="manifest.available"/>
+                <isset property="do.archive"/>
+            </and>
+        </condition>
+        <condition property="do.archive+main.class">
+            <and>
+                <isset property="main.class.available"/>
+                <isset property="do.archive"/>
+            </and>
+        </condition>
+        <condition property="do.archive+profile.available">
+            <and>
+                <isset property="profile.available"/>
+                <isset property="do.archive"/>
+            </and>
+        </condition>
+        <condition property="have.tests">
+            <or>
+                <available file="${test.src.dir}"/>
+            </or>
+        </condition>
+        <condition property="have.sources">
+            <or>
+                <available file="${src.dir}"/>
+            </or>
+        </condition>
+        <condition property="netbeans.home+have.tests">
+            <and>
+                <isset property="netbeans.home"/>
+                <isset property="have.tests"/>
+            </and>
+        </condition>
+        <condition property="no.javadoc.preview">
+            <and>
+                <isset property="javadoc.preview"/>
+                <isfalse value="${javadoc.preview}"/>
+            </and>
+        </condition>
+        <property name="run.jvmargs" value=""/>
+        <property name="run.jvmargs.ide" value=""/>
+        <property name="javac.compilerargs" value=""/>
+        <property name="work.dir" value="${basedir}"/>
+        <condition property="no.deps">
+            <and>
+                <isset property="no.deps"/>
+            </and>
+        </condition>
+        <property name="javac.debug" value="true"/>
+        <property name="javadoc.preview" value="true"/>
+        <property name="application.args" value=""/>
+        <property name="source.encoding" value="${file.encoding}"/>
+        <property name="runtime.encoding" value="${source.encoding}"/>
+        <condition property="javadoc.encoding.used" value="${javadoc.encoding}">
+            <and>
+                <isset property="javadoc.encoding"/>
+                <not>
+                    <equals arg1="${javadoc.encoding}" arg2=""/>
+                </not>
+            </and>
+        </condition>
+        <property name="javadoc.encoding.used" value="${source.encoding}"/>
+        <property name="includes" value="**"/>
+        <property name="excludes" value=""/>
+        <property name="do.depend" value="false"/>
+        <condition property="do.depend.true">
+            <istrue value="${do.depend}"/>
+        </condition>
+        <path id="endorsed.classpath.path" path="${endorsed.classpath}"/>
+        <condition else="" property="endorsed.classpath.cmd.line.arg" value="-Xbootclasspath/p:'${toString:endorsed.classpath.path}'">
+            <and>
+                <isset property="endorsed.classpath"/>
+                <not>
+                    <equals arg1="${endorsed.classpath}" arg2="" trim="true"/>
+                </not>
+            </and>
+        </condition>
+        <condition else="false" property="jdkBug6558476">
+            <and>
+                <matches pattern="1\.[56]" string="${java.specification.version}"/>
+                <not>
+                    <os family="unix"/>
+                </not>
+            </and>
+        </condition>
+        <property name="javac.fork" value="${jdkBug6558476}"/>
+        <property name="jar.index" value="false"/>
+        <property name="jar.index.metainf" value="${jar.index}"/>
+        <available file="${meta.inf.dir}/persistence.xml" property="has.persistence.xml"/>
+        <condition property="junit.available">
+            <or>
+                <available classname="org.junit.Test" classpath="${run.test.classpath}"/>
+            </or>
+        </condition>
+        <condition property="testng.available">
+            <or>
+                <available classname="org.testng.annotations.Test" classpath="${run.test.classpath}"/>
+            </or>
+        </condition>
+        <condition property="junit+testng.available">
+            <and>
+                <isset property="junit.available"/>
+                <isset property="testng.available"/>
+            </and>
+        </condition>
+    </target>
+    <target name="post-init">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="init-check" depends="pre-init,init-private,init-user,init-project,do-init">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="init" depends="init-check,post-init"/>
+    <!--
+                ===================
+                COMPILATION SECTION
+                ===================
+            -->
+    <target name="deps-jar" depends="init">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="pre-compile" depends="init,deps-jar">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="compile" depends="pre-compile" description="Compile all source files.">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac debug="${javac.debug}" deprecation="${javac.deprecation}" destdir="${build.classes.dir}" encoding="${source.encoding}" excludes="${excludes}" fork="${javac.fork}" includeantruntime="false" includes="${includes}" source="${javac.source}" srcdir="${src.dir}" target="${javac.target}" tempdir="${java.io.tmpdir}">
+            <compilerarg line="${endorsed.classpath.cmd.line.arg}"/>
+            <compilerarg line="${javac.compilerargs}"/>
+            <classpath>
+                <path path="${javac.classpath}"/>
+            </classpath>
+        </javac>
+    </target>
+    <target name="post-compile" depends="compile">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="compile-single" depends="pre-compile">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <!--
+                ===================
+                JAR BUILDING SECTION
+                ===================
+            -->
+    <target name="pre-jar">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="jar" depends="init,compile,post-compile,pre-jar" if="do.archive">
+        <j2seproject1:jar/>
+    </target>
+    <target name="post-jar">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <!--
+                =================
+                EXECUTION SECTION
+                =================
+            -->
+    <target name="run" depends="init,compile,post-compile" description="Run a main class.">
+        <j2seproject1:java>
+            <customize>
+                <arg line="${application.args}"/>
+            </customize>
+        </j2seproject1:java>
+    </target>
+    <target name="run-applet" depends="init,compile,post-compile" description="Run an applet.">
+        <fail unless="applet.url" message="Property 'applet.url' is required to run an applet."/>
+        <fail unless="applet.code" message="Property 'applet.code' is required to run an applet."/>
+        <j2seproject3:java>
+            <customize>
+                <arg value="-Dapplet.url=${applet.url}"/>
+                <arg value="-Dapplet.code=${applet.code}"/>
+                <arg value="sun.applet.AppletViewer"/>
+            </customize>
+        </j2seproject3:java>
+    </target>
+    <target name="run-webstart" depends="init,compile,post-compile" description="Run a JNLP application.">
+        <fail unless="jnlp.url" message="Property 'jnlp.url' is required to run a webstart application."/>
+        <j2seproject3:java>
+            <customize>
+                <arg value="-Djnlp.url=${jnlp.url}"/>
+                <arg value="javaws"/>
+            </customize>
+        </j2seproject3:java>
+    </target>
+    <target name="run-single" depends="init,compile-single,post-compile" description="Run a single class.">
+        <fail unless="run.class" message="Property 'run.class' is required to run a single class."/>
+        <j2seproject1:java classname="${run.class}"/>
+    </target>
+    <target name="debug" depends="init,compile,post-compile" description="Debug project in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <j2seproject1:debug>
+            <customize>
+                <arg line="${application.args}"/>
+            </customize>
+        </j2seproject1:debug>
+    </target>
+    <target name="debug-single" depends="init,compile-single,post-compile" description="Debug a single class in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="debug.class" message="Property 'debug.class' is required to debug a single class."/>
+        <j2seproject1:debug classname="${debug.class}"/>
+    </target>
+    <target name="debug-applet" depends="init,compile,post-compile" description="Debug an applet in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="applet.url" message="Property 'applet.url' is required to debug an applet."/>
+        <fail unless="applet.code" message="Property 'applet.code' is required to debug an applet."/>
+        <j2seproject3:debug>
+            <customize>
+                <arg value="-Dapplet.url=${applet.url}"/>
+                <arg value="-Dapplet.code=${applet.code}"/>
+                <arg value="sun.applet.AppletViewer"/>
+            </customize>
+        </j2seproject3:debug>
+    </target>
+    <target name="debug-test-single" depends="init,compile-test-single,post-compile-test" description="Debug a single test class in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="debug.class" message="Property 'debug.class' is required to debug a single test class."/>
+        <j2seproject1:debug classname="${debug.class}" classpath="${debug.classpath}"/>
+    </target>
+    <!--
+                =================
+                TESTING SECTION
+                =================
+            -->
+    <target name="pre-test-compile" depends="init,compile,post-compile" if="have.tests">
+        <mkdir dir="${build.test.classes.dir}"/>
+        <depend srcDir="${test.src.dir}" destDir="${build.test.classes.dir}" cache="${build.dir}/depcache" excludes="${excludes}" includes="${includes}"/>
+        <j2seproject1:javac apgeneratedsrcdir="${build.generated.sources.dir}/ap-source-output/test" classpath="${javac.test.classpath}" debug="true" destdir="${build.test.classes.dir}" processorpath="${javac.test.processorpath}" srcdir="${test.src.dir}"/>
+    </target>
+    <target name="test-compile" depends="pre-test-compile" if="have.tests">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="compile-test-single" if="have.tests">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="post-compile-test" depends="test-compile" if="have.tests">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="pre-test" depends="init,compile,post-compile,test-compile,post-compile-test" if="have.tests">
+        <mkdir dir="${build.test.results.dir}"/>
+    </target>
+    <target name="test-single" depends="init,compile,post-compile,test-compile,post-compile-test,pre-test" if="have.tests">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="test" depends="init,compile,post-compile,test-compile,post-compile-test,pre-test" if="have.tests" description="Run unit tests.">
+        <j2seproject3:junit testincludes="**/*Test.java" testmethods="${test.includes}">
+            <customize>
+                <syspropertyset>
+                    <propertyref prefix="test-sys-prop."/>
+                    <mapper from="test-sys-prop.*" to="*" type="glob"/>
+                </syspropertyset>
+            </customize>
+        </j2seproject3:junit>
+    </target>
+    <target name="post-test" depends="test" if="have.tests">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="test-single-method" depends="init,compile,post-compile,test-compile,post-compile-test,pre-test" if="have.tests">
+        <fail unless="test.class" message="Property 'test.class' is required to run a single test method."/>
+        <fail unless="test.method" message="Property 'test.method' is required to run a single test method."/>
+        <j2seproject3:junit excludehaltonerror="true" excludes="**/*Test.java" includes="${test.class}" testmethods="${test.method}"/>
+    </target>
+    <target name="test-coverage" depends="init,compile,post-compile,test-compile,post-compile-test,pre-test" if="have.tests">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <j2seproject3:junit testincludes="**/*Test.java">
+            <customize>
+                <syspropertyset>
+                    <propertyref prefix="test-sys-prop."/>
+                    <mapper from="test-sys-prop.*" to="*" type="glob"/>
+                </syspropertyset>
+            </customize>
+        </j2seproject3:junit>
+    </target>
+    <!--
+                =================
+                JAVADOC SECTION
+                =================
+            -->
+    <target name="javadoc" depends="init" description="Build Javadoc.">
+        <mkdir dir="${dist.javadoc.dir}"/>
+        <javadoc additionalparam="${javadoc.additionalparam}" author="${javadoc.author}" charset="UTF-8" destdir="${dist.javadoc.dir}" docencoding="UTF-8" encoding="${javadoc.encoding.used}" failonerror="true" noindex="${javadoc.noindex}" nonavbar="${javadoc.nonavbar}" notree="${javadoc.notree}" private="${javadoc.private}" source="${javac.source}" splitindex="${javadoc.splitindex}" use="${javadoc.use}" useexternalfile="true" version="${javadoc.version}" windowtitle="${javadoc.windowtitle}">
+            <classpath>
+                <path path="${javac.classpath}"/>
+            </classpath>
+            <fileset dir="${src.dir}" excludes="*.java,${excludes}" includes="${includes}">
+                <filename name="**/*.java"/>
+            </fileset>
+            <fileset dir="${build.generated.sources.dir}" erroronmissingdir="false">
+                <include name="**/*.java"/>
+                <exclude name="*.java"/>
+            </fileset>
+        </javadoc>
+        <copy todir="${dist.javadoc.dir}">
+            <fileset dir="${src.dir}" excludes="${excludes}" includes="${includes}">
+                <filename name="**/doc-files/**"/>
+            </fileset>
+            <fileset dir="${build.generated.sources.dir}" erroronmissingdir="false">
+                <include name="**/doc-files/**"/>
+            </fileset>
+        </copy>
+    </target>
+    <!--
+                =========================
+                JUNIT COMPILATION SECTION
+                =========================
+            -->
+    <target name="pre-pre-compile" depends="init">
+        <mkdir dir="${build.classes.dir}"/>
+    </target>
+    <target name="pre-compile-single" depends="pre-pre-compile">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <!--
+                =======================
+                JAR BUILDING SECTION
+                =======================
+            -->
+    <target name="pre-jar-single" depends="pre-compile-single">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <!--
+                =======================
+                EXECUTION SECTION
+                =======================
+            -->
+    <target name="run-single-main" depends="pre-compile-single">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <!--
+                =======================
+                CLEANUP SECTION
+                =======================
+            -->
+    <target name="deps-clean" depends="init" unless="no.deps">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="do-clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+    <target name="post-clean">
+        <!-- Empty placeholder for easier customization. -->
+        <!-- You can override this target in the ../build.xml file. -->
+    </target>
+    <target name="clean" depends="init,deps-clean,do-clean,post-clean" description="Clean build products."/>
+    <target name="clean-all" depends="init,deps-clean,do-clean,post-clean" description="Clean all build products."/>
+    <!--
+                ===================
+                HELP SECTION
+                ===================
+            -->
+    <target name="help" description="Display help information.">
+        <echo message="Please run 'ant -projecthelp' for more information."/>
+    </target>
+    <!--
+                ===================
+                EXECUTION SECTION
+                ===================
+            -->
+    <target name="run-app" depends="init,compile,post-compile" description="Run a main class.">
+        <j2seproject1:java>
+            <customize>
+                <arg line="${application.args}"/>
+            </customize>
+        </j2seproject1:java>
+    </target>
+    <target name="run-its" depends="init,compile,post-compile" description="Run an applet.">
+        <fail unless="applet.url" message="Property 'applet.url' is required to run an applet."/>
+        <fail unless="applet.code" message="Property 'applet.code' is required to run an applet."/>
+        <j2seproject3:java>
+            <customize>
+                <arg value="-Dapplet.url=${applet.url}"/>
+                <arg value="-Dapplet.code=${applet.code}"/>
+                <arg value="sun.applet.AppletViewer"/>
+            </customize>
+        </j2seproject3:java>
+    </target>
+    <target name="run-its" depends="init,compile,post-compile" description="Run a JNLP application.">
+        <fail unless="jnlp.url" message="Property 'jnlp.url' is required to run a webstart application."/>
+        <j2seproject3:java>
+            <customize>
+                <arg value="-Djnlp.url=${jnlp.url}"/>
+                <arg value="javaws"/>
+            </customize>
+        </j2seproject3:java>
+    </target>
+    <target name="run-its" depends="init,compile-single,post-compile" description="Run a single class.">
+        <fail unless="run.class" message="Property 'run.class' is required to run a single class."/>
+        <j2seproject1:java classname="${run.class}"/>
+    </target>
+    <target name="debug-app" depends="init,compile,post-compile" description="Debug project in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <j2seproject1:debug>
+            <customize>
+                <arg line="${application.args}"/>
+            </customize>
+        </j2seproject1:debug>
+    </target>
+    <target name="debug-single" depends="init,compile-single,post-compile" description="Debug a single class in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="debug.class" message="Property 'debug.class' is required to debug a single class."/>
+        <j2seproject1:debug classname="${debug.class}"/>
+    </target>
+    <target name="debug-applet" depends="init,compile,post-compile" description="Debug an applet in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="applet.url" message="Property 'applet.url' is required to debug an applet."/>
+        <fail unless="applet.code" message="Property 'applet.code' is required to debug an applet."/>
+        <j2seproject3:debug>
+            <customize>
+                <arg value="-Dapplet.url=${applet.url}"/>
+                <arg value="-Dapplet.code=${applet.code}"/>
+                <arg value="sun.applet.AppletViewer"/>
+            </customize>
+        </j2seproject3:debug>
+    </target>
+    <target name="debug-test-single" depends="init,compile-test-single,post-compile-test" description="Debug a single test class in IDE.">
+        <fail unless="netbeans.home" message="This target only works when run from inside the NetBeans IDE."/>
+        <fail unless="debug.class" message="Property 'debug.class' is required to debug a single test class."/>
+        <j2seproject1:debug classname="${debug.class}" classpath="${debug.classpath}"/>
+    </target>
+</project>

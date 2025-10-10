@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TamNhatThoc" default="compile" basedir=".">
+    
+    <!-- Properties -->
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="dist.dir" value="dist"/>
+    <property name="main.class" value="client.gui.LoginFrame"/>
+    
+    <!-- Create directories -->
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${lib.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+    
+    <!-- Download dependencies -->
+    <target name="download-deps" depends="init">
+        <echo message="Downloading dependencies..."/>
+        
+        <!-- Download JSON library -->
+        <get src="https://repo1.maven.org/maven2/org/json/json/20231013/json-20231013.jar" 
+             dest="${lib.dir}/json-20231013.jar" 
+             skipexisting="true"/>
+        
+        <!-- Download MongoDB Driver -->
+        <get src="https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-sync/4.11.1/mongodb-driver-sync-4.11.1.jar" 
+             dest="${lib.dir}/mongodb-driver-sync-4.11.1.jar" 
+             skipexisting="true"/>
+        
+        <!-- Download BSON -->
+        <get src="https://repo1.maven.org/maven2/org/mongodb/bson/4.11.1/bson-4.11.1.jar" 
+             dest="${lib.dir}/bson-4.11.1.jar" 
+             skipexisting="true"/>
+        
+        <!-- Download MongoDB Driver Core -->
+        <get src="https://repo1.maven.org/maven2/org/mongodb/mongodb-driver-core/4.11.1/mongodb-driver-core-4.11.1.jar" 
+             dest="${lib.dir}/mongodb-driver-core-4.11.1.jar" 
+             skipexisting="true"/>
+        
+        <!-- Download BCrypt -->
+        <get src="https://repo1.maven.org/maven2/org/mindrot/jbcrypt/0.4/jbcrypt-0.4.jar" 
+             dest="${lib.dir}/jbcrypt-0.4.jar" 
+             skipexisting="true"/>
+        
+        <echo message="Dependencies downloaded successfully!"/>
+    </target>
+    
+    <!-- Compile source code -->
+    <target name="compile" depends="download-deps">
+        <echo message="Compiling source files..."/>
+        
+        <javac srcdir="${src.dir}" 
+               destdir="${classes.dir}" 
+               includeantruntime="false" 
+               release="17">
+            
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+        
+        <echo message="Compilation completed successfully!"/>
+    </target>
+    
+    <!-- Create JAR file -->
+    <target name="jar" depends="compile">
+        <echo message="Creating JAR file..."/>
+        
+        <jar destfile="${dist.dir}/TamNhatThoc.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Class-Path" value="json-20231013.jar mongodb-driver-sync-4.11.1.jar bson-4.11.1.jar mongodb-driver-core-4.11.1.jar jbcrypt-0.4.jar"/>
+            </manifest>
+        </jar>
+        
+        <!-- Copy dependencies to dist folder -->
+        <copy todir="${dist.dir}">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        
+        <echo message="JAR file created successfully!"/>
+    </target>
+    
+    <!-- Run Server -->
+    <target name="run-server" depends="jar">
+        <echo message="Starting Game Server..."/>
+        <java classname="server.GameServer" fork="true">
+            <classpath>
+                <path location="${dist.dir}/TamNhatThoc.jar"/>
+                <fileset dir="${dist.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <!-- Run Client -->
+    <target name="run-client" depends="jar">
+        <echo message="Starting Game Client..."/>
+        <java classname="${main.class}" fork="true">
+            <classpath>
+                <path location="${dist.dir}/TamNhatThoc.jar"/>
+                <fileset dir="${dist.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <!-- Clean build -->
+    <target name="clean">
+        <echo message="Cleaning build files..."/>
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <echo message="Clean completed!"/>
+    </target>
+    
+    <!-- Clean all (including dependencies) -->
+    <target name="clean-all">
+        <echo message="Cleaning all files..."/>
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${lib.dir}"/>
+        <echo message="Clean all completed!"/>
+    </target>
+    
+    <!-- NetBeans run-single target -->
+    <target name="run-single" depends="jar">
+        <echo message="Running single class..."/>
+        <java classname="${run.class}" fork="true">
+            <classpath>
+                <path location="${dist.dir}/TamNhatThoc.jar"/>
+                <fileset dir="${dist.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <!-- Setup MongoDB -->
+    <target name="setup-db" depends="jar">
+        <echo message="Setting up MongoDB database..."/>
+        <java classname="database.MongoDBSetup" fork="true">
+            <classpath>
+                <path location="${dist.dir}/TamNhatThoc.jar"/>
+                <fileset dir="${dist.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+</project>
