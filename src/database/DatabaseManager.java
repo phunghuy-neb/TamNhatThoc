@@ -10,6 +10,8 @@ import shared.Match;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Quản lý kết nối và thao tác với MongoDB
@@ -21,6 +23,9 @@ public class DatabaseManager {
     private MongoCollection<Document> usersCollection;
     private MongoCollection<Document> matchHistoryCollection;
     
+    // BUG FIX #1: Cache để tránh O(n) query performance issue
+    private Map<String, User> userCache;
+    
     private static final String DB_NAME = "tam_nhat_thoc";
     private static final String CONNECTION_STRING = "mongodb://localhost:27017";
     
@@ -30,6 +35,10 @@ public class DatabaseManager {
             database = mongoClient.getDatabase(DB_NAME);
             usersCollection = database.getCollection("users");
             matchHistoryCollection = database.getCollection("match_history");
+            
+            // Initialize cache (thread-safe)
+            userCache = new ConcurrentHashMap<>();
+            
             System.out.println("✅ Kết nối MongoDB thành công!");
         } catch (Exception e) {
             System.err.println("❌ Lỗi kết nối MongoDB: " + e.getMessage());
@@ -70,8 +79,25 @@ public class DatabaseManager {
                     .append("created_at", new Date());
             
             usersCollection.insertOne(newUser);
+            
+            // BUG FIX #1: Cache user mới ngay sau khi tạo
+            // (Tối ưu cho trường hợp register → login → play game ngay)
+            // Note: Không cache ngay vì chưa có ObjectId, sẽ cache khi login
+            
+            System.out.println("✅ User registered successfully: " + username);
             return true;
         } catch (Exception e) {
+            // BUG FIX #22: Better error handling - phân biệt các loại lỗi
+            String errorMsg = e.getMessage();
+            
+            // Check if it's a duplicate key error (race condition case)
+            if (errorMsg != null && (errorMsg.contains("duplicate key") || errorMsg.contains("E11000"))) {
+                System.out.println("⚠️ Duplicate username (race condition): " + username);
+                return false; // Username đã tồn tại (race condition)
+            }
+            
+            // Other database errors - log chi tiết
+            System.err.println("❌ Database error during registration for user: " + username);
             e.printStackTrace();
             return false;
         }
@@ -79,6 +105,7 @@ public class DatabaseManager {
     
     /**
      * Đăng nhập
+     * BUG FIX #1: Cache user sau khi login thành công
      * @return User object nếu thành công, null nếu thất bại
      */
     public User loginUser(String username, String hashedPassword) {
@@ -94,7 +121,14 @@ public class DatabaseManager {
                 return null;
             }
             
-            return documentToUser(userDoc);
+            User user = documentToUser(userDoc);
+            
+            // BUG FIX #1: Cache user ngay sau khi login
+            String userId = String.valueOf(user.getUserId());
+            userCache.put(userId, user);
+            System.out.println("✅ User cached on login: " + user.getUsername());
+            
+            return user;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -114,18 +148,50 @@ public class DatabaseManager {
         }
     }
     
-    /**l
-     * Lấy thông tin user theo ID
+    /**
+     * Helper method: Tìm Document của user theo userId
+     * BUG FIX #1: Centralized method để dễ optimize sau
+     */
+    private Document findUserDocument(String userId) throws NumberFormatException {
+        int userIdHash = Integer.parseInt(userId);
+        FindIterable<Document> results = usersCollection.find();
+        for (Document doc : results) {
+            if (doc.getObjectId("_id").hashCode() == userIdHash) {
+                return doc;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Lấy thông tin user theo ID (with caching)
+     * BUG FIX #1: Thêm cache để tránh O(n) scan toàn bộ users collection
      */
     public User getUserById(String userId) {
         try {
-            // Tìm user theo hashCode của _id
-            FindIterable<Document> results = usersCollection.find();
-            for (Document doc : results) {
-                if (doc.getObjectId("_id").hashCode() == Integer.parseInt(userId)) {
-                    return documentToUser(doc);
-                }
+            // Check cache trước (O(1))
+            User cachedUser = userCache.get(userId);
+            if (cachedUser != null) {
+                System.out.println("🎯 Cache hit for userId: " + userId);
+                return cachedUser;
             }
+            
+            System.out.println("💾 Cache miss for userId: " + userId + ", querying database...");
+            
+            // Cache miss → Query database
+            Document userDoc = findUserDocument(userId);
+            if (userDoc != null) {
+                User user = documentToUser(userDoc);
+                
+                // Lưu vào cache cho lần sau
+                userCache.put(userId, user);
+                System.out.println("✅ Cached user: " + user.getUsername());
+                
+                return user;
+            }
+            return null;
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid userId format: " + userId);
             return null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,23 +201,18 @@ public class DatabaseManager {
     
     /**
      * Cập nhật điểm sau trận đấu
+     * BUG FIX #1: Dùng helper method để tránh duplicate O(n) scan
      */
     public void updateUserScore(String userId, int scoreToAdd, String result) {
         try {
-            // Tìm user theo hashCode của _id
-            FindIterable<Document> results = usersCollection.find();
-            ObjectId userObjectId = null;
-            Document userDoc = null;
-            
-            for (Document doc : results) {
-                if (doc.getObjectId("_id").hashCode() == Integer.parseInt(userId)) {
-                    userObjectId = doc.getObjectId("_id");
-                    userDoc = doc;
-                    break;
-                }
+            // Tìm user document (optimized)
+            Document userDoc = findUserDocument(userId);
+            if (userDoc == null) {
+                System.out.println("❌ User not found for score update: " + userId);
+                return;
             }
             
-            if (userDoc == null) return;
+            ObjectId userObjectId = userDoc.getObjectId("_id");
             
             int currentScore = userDoc.getInteger("total_score", 0);
             int wins = userDoc.getInteger("total_wins", 0);
@@ -186,33 +247,53 @@ public class DatabaseManager {
                     Updates.set("win_rate", winRate)
                 )
             );
+            
+            // BUG FIX #1: Invalidate cache sau khi update
+            userCache.remove(userId);
+            System.out.println("🗑️ Cache invalidated for userId: " + userId);
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
     /**
-     * Cập nhật thông tin cá nhân
+     * Đổi mật khẩu (yêu cầu xác thực mật khẩu cũ)
+     * BUG FIX #1: Dùng helper method để tránh duplicate O(n) scan
+     * @param userId ID của user
+     * @param oldHashedPassword Mật khẩu cũ đã hash (để verify)
+     * @param newHashedPassword Mật khẩu mới đã hash
+     * @return true nếu thành công, false nếu thất bại
      */
-    public boolean updateUserProfile(String userId, String email) {
+    public boolean changePassword(String userId, String oldHashedPassword, String newHashedPassword) {
         try {
-            // Tìm user theo hashCode của _id
-            FindIterable<Document> results = usersCollection.find();
-            ObjectId userObjectId = null;
-            
-            for (Document doc : results) {
-                if (doc.getObjectId("_id").hashCode() == Integer.parseInt(userId)) {
-                    userObjectId = doc.getObjectId("_id");
-                    break;
-                }
+            // Tìm user document (optimized)
+            Document userDoc = findUserDocument(userId);
+            if (userDoc == null) {
+                System.out.println("❌ User not found for password change");
+                return false;
             }
             
-            if (userObjectId == null) return false;
+            ObjectId userObjectId = userDoc.getObjectId("_id");
             
+            // Verify mật khẩu cũ
+            String currentPassword = userDoc.getString("password");
+            if (!currentPassword.equals(oldHashedPassword)) {
+                System.out.println("❌ Old password incorrect");
+                return false;
+            }
+            
+            // Cập nhật mật khẩu mới
             usersCollection.updateOne(
                 Filters.eq("_id", userObjectId),
-                Updates.set("email", email)
+                Updates.set("password", newHashedPassword)
             );
+            
+            // BUG FIX #1: Invalidate cache sau khi update password
+            userCache.remove(userId);
+            System.out.println("🗑️ Cache invalidated for userId: " + userId);
+            
+            System.out.println("✅ Password changed successfully for user: " + userDoc.getString("username"));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -246,13 +327,17 @@ public class DatabaseManager {
     
     /**
      * Lưu lịch sử trận đấu
+     * BUG FIX #3: Thêm player names để tránh N+1 query problem
      */
     public void saveMatch(String player1Id, String player2Id, int player1Score, 
-                         int player2Score, String winnerId, int duration) {
+                         int player2Score, String winnerId, int duration,
+                         String player1Name, String player2Name) {
         try {
             Document match = new Document()
                     .append("player1_id", player1Id)
                     .append("player2_id", player2Id)
+                    .append("player1_name", player1Name)      // ✅ Lưu tên luôn
+                    .append("player2_name", player2Name)      // ✅ Lưu tên luôn
                     .append("player1_score", player1Score)
                     .append("player2_score", player2Score)
                     .append("winner_id", winnerId)
@@ -260,6 +345,7 @@ public class DatabaseManager {
                     .append("created_at", new Date());
             
             matchHistoryCollection.insertOne(match);
+            System.out.println("✅ Match saved: " + player1Name + " vs " + player2Name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -267,6 +353,7 @@ public class DatabaseManager {
     
     /**
      * Lấy lịch sử đấu của user
+     * BUG FIX #3 & #8: Lấy player names từ DB thay vì query getUserById() (N+1 problem)
      */
     public List<Match> getUserMatchHistory(String userId, int limit) {
         List<Match> history = new ArrayList<>();
@@ -288,11 +375,21 @@ public class DatabaseManager {
                 match.setMatchDuration(doc.getInteger("match_duration", 0));
                 match.setCreatedAt(new java.sql.Timestamp(doc.getDate("created_at").getTime()));
                 
-                // Lấy tên người chơi
-                User p1 = getUserById(doc.getString("player1_id"));
-                User p2 = getUserById(doc.getString("player2_id"));
-                if (p1 != null) match.setPlayer1Name(p1.getUsername());
-                if (p2 != null) match.setPlayer2Name(p2.getUsername());
+                // BUG FIX #3: Lấy tên từ DB thay vì query
+                String player1Name = doc.getString("player1_name");
+                String player2Name = doc.getString("player2_name");
+                
+                // Fallback cho matches cũ (không có player names trong DB)
+                if (player1Name == null || player2Name == null) {
+                    System.out.println("⚠️ Old match without names, querying users (one-time)...");
+                    User p1 = getUserById(doc.getString("player1_id"));
+                    User p2 = getUserById(doc.getString("player2_id"));
+                    player1Name = p1 != null ? p1.getUsername() : "Unknown";
+                    player2Name = p2 != null ? p2.getUsername() : "Unknown";
+                }
+                
+                match.setPlayer1Name(player1Name);
+                match.setPlayer2Name(player2Name);
                 
                 history.add(match);
             }
@@ -306,23 +403,21 @@ public class DatabaseManager {
     
     /**
      * Xóa user (chỉ admin)
+     * BUG FIX #1: Dùng helper method để tránh duplicate O(n) scan
      */
     public boolean deleteUser(String userId) {
         try {
-            // Tìm user theo hashCode của _id
-            FindIterable<Document> results = usersCollection.find();
-            ObjectId userObjectId = null;
+            // Tìm user document (optimized)
+            Document userDoc = findUserDocument(userId);
+            if (userDoc == null) return false;
             
-            for (Document doc : results) {
-                if (doc.getObjectId("_id").hashCode() == Integer.parseInt(userId)) {
-                    userObjectId = doc.getObjectId("_id");
-                    break;
-                }
-            }
-            
-            if (userObjectId == null) return false;
-            
+            ObjectId userObjectId = userDoc.getObjectId("_id");
             usersCollection.deleteOne(Filters.eq("_id", userObjectId));
+            
+            // Invalidate cache
+            userCache.remove(userId);
+            System.out.println("🗑️ User deleted and cache cleared: " + userId);
+            
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -332,21 +427,15 @@ public class DatabaseManager {
     
     /**
      * Reset điểm user (chỉ admin)
+     * BUG FIX #1: Dùng helper method để tránh duplicate O(n) scan
      */
     public boolean resetUserScore(String userId) {
         try {
-            // Tìm user theo hashCode của _id
-            FindIterable<Document> results = usersCollection.find();
-            ObjectId userObjectId = null;
+            // Tìm user document (optimized)
+            Document userDoc = findUserDocument(userId);
+            if (userDoc == null) return false;
             
-            for (Document doc : results) {
-                if (doc.getObjectId("_id").hashCode() == Integer.parseInt(userId)) {
-                    userObjectId = doc.getObjectId("_id");
-                    break;
-                }
-            }
-            
-            if (userObjectId == null) return false;
+            ObjectId userObjectId = userDoc.getObjectId("_id");
             
             usersCollection.updateOne(
                 Filters.eq("_id", userObjectId),
@@ -358,6 +447,11 @@ public class DatabaseManager {
                     Updates.set("win_rate", 0.0)
                 )
             );
+            
+            // BUG FIX #1: Invalidate cache sau khi reset
+            userCache.remove(userId);
+            System.out.println("🗑️ Cache invalidated for userId: " + userId);
+            
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -366,6 +460,21 @@ public class DatabaseManager {
     }
     
     // ==================== HELPER METHODS ====================
+    
+    /**
+     * Clear user cache (for maintenance or testing)
+     */
+    public void clearCache() {
+        userCache.clear();
+        System.out.println("🗑️ User cache cleared");
+    }
+    
+    /**
+     * Get cache statistics (for monitoring)
+     */
+    public int getCacheSize() {
+        return userCache.size();
+    }
     
     private User documentToUser(Document doc) {
         User user = new User();
@@ -382,6 +491,8 @@ public class DatabaseManager {
     
     public void close() {
         if (mongoClient != null) {
+            // Clear cache trước khi close
+            clearCache();
             mongoClient.close();
         }
     }

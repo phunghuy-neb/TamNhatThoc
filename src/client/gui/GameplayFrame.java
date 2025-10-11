@@ -58,7 +58,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         this.myScore = 0;
         System.out.println("🔍 Constructor - myScore initialized to: " + myScore + ", instance: " + System.identityHashCode(this));
         this.opponentScore = 0;
-        this.timeLeft = 30; // 2 phút
+        this.timeLeft = 120; // 2 phút = 120 giây (BUG FIX: trước đây là 30 giây)
         this.gameEnded = false;
         
         // Lấy tên đối thủ từ gameStartData

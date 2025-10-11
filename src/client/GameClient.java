@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Client kết nối tới server
@@ -21,13 +21,15 @@ public class GameClient {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
+    // BUG FIX #8: CopyOnWriteArrayList để tránh ConcurrentModificationException
     private List<MessageListener> listeners;
     private Thread receiveThread;
     private Thread heartbeatThread;
     private boolean connected;
     
     public GameClient() {
-        listeners = new ArrayList<>();
+        // Thread-safe list - safe để iterate khi đang modify
+        listeners = new CopyOnWriteArrayList<>();
         connected = false;
     }
     

@@ -22,6 +22,8 @@ public class Room {
     private int guestScore;
     private boolean hostFinished;
     private boolean guestFinished;
+    private boolean hostQuit; // Flag để đánh dấu host đã thoát
+    private boolean guestQuit; // Flag để đánh dấu guest đã thoát
     private long gameStartTime;
     private boolean resultCalculated; // Flag để đảm bảo chỉ tính kết quả 1 lần
     
@@ -37,6 +39,8 @@ public class Room {
         this.guestScore = 0;
         this.hostFinished = false;
         this.guestFinished = false;
+        this.hostQuit = false;
+        this.guestQuit = false;
         this.resultCalculated = false;
     }
     
@@ -68,7 +72,8 @@ public class Room {
         return grains;
     }
     
-    public boolean isFull() {
+    // BUG FIX #23: Synchronized để tránh race condition khi join room
+    public synchronized boolean isFull() {
         return guest != null;
     }
     
@@ -76,16 +81,19 @@ public class Room {
         return "playing".equals(status);
     }
     
-    public void addGuest(ClientHandler guest) {
+    // BUG FIX #23: Synchronized để tránh 2 guest join cùng lúc
+    public synchronized void addGuest(ClientHandler guest) {
         this.guest = guest;
     }
     
-    public void removeGuest() {
+    // BUG FIX #23: Synchronized để tránh race condition
+    public synchronized void removeGuest() {
         this.guest = null;
         this.guestReady = false;
     }
     
-    public void removePlayer(ClientHandler player) {
+    // BUG FIX #23: Synchronized để tránh race condition
+    public synchronized void removePlayer(ClientHandler player) {
         if (player == host) {
             host = null;
         } else if (player == guest) {
@@ -107,17 +115,20 @@ public class Room {
         return null;
     }
     
-    public void updateScore(ClientHandler player, int newScore) {
+    public synchronized void updateScore(ClientHandler player, int newScore) {
         if (player == host) {
             hostScore = newScore;
-            System.out.println("📊 Host " + player.getUser().getUsername() + " score updated to: " + newScore);
+            String name = (player.getUser() != null) ? player.getUser().getUsername() : "Unknown";
+            System.out.println("📊 Host " + name + " score updated to: " + newScore);
         } else if (player == guest) {
             guestScore = newScore;
-            System.out.println("📊 Guest " + player.getUser().getUsername() + " score updated to: " + newScore);
+            String name = (player.getUser() != null) ? player.getUser().getUsername() : "Unknown";
+            System.out.println("📊 Guest " + name + " score updated to: " + newScore);
         }
     }
     
-    public void setFinished(ClientHandler player) {
+    // BUG FIX #5: Thêm synchronized để tránh race condition
+    public synchronized void setFinished(ClientHandler player) {
         if (player == host) {
             hostFinished = true;
         } else if (player == guest) {
@@ -125,19 +136,43 @@ public class Room {
         }
     }
     
-    public boolean bothFinished() {
+    // BUG FIX #6: Thêm synchronized để tránh race condition
+    public synchronized void setQuit(ClientHandler player) {
+        if (player == host) {
+            hostQuit = true;
+            String name = (player.getUser() != null) ? player.getUser().getUsername() : "Unknown";
+            System.out.println("🚪 Host " + name + " marked as quit");
+        } else if (player == guest) {
+            guestQuit = true;
+            String name = (player.getUser() != null) ? player.getUser().getUsername() : "Unknown";
+            System.out.println("🚪 Guest " + name + " marked as quit");
+        }
+    }
+    
+    // BUG FIX #7: Thêm synchronized để đọc 2 boolean atomic
+    public synchronized boolean bothFinished() {
         return hostFinished && guestFinished;
     }
     
-    public boolean isHostFinished() {
+    // Getters - synchronized để đảm bảo visibility
+    public synchronized boolean isHostFinished() {
         return hostFinished;
     }
     
-    public boolean isGuestFinished() {
+    public synchronized boolean isGuestFinished() {
         return guestFinished;
     }
     
-    public int getPlayerScore(ClientHandler player) {
+    public synchronized boolean isHostQuit() {
+        return hostQuit;
+    }
+    
+    public synchronized boolean isGuestQuit() {
+        return guestQuit;
+    }
+    
+    // BUG FIX (Phase 2 improvement): Synchronized score getters để đảm bảo visibility
+    public synchronized int getPlayerScore(ClientHandler player) {
         if (player == host) {
             return hostScore;
         } else if (player == guest) {
@@ -148,8 +183,11 @@ public class Room {
     
     // Getters and Setters
     public String getRoomId() { return roomId; }
-    public ClientHandler getHost() { return host; }
-    public ClientHandler getGuest() { return guest; }
+    
+    // BUG FIX #23: Synchronized getters để đảm bảo visibility
+    public synchronized ClientHandler getHost() { return host; }
+    public synchronized ClientHandler getGuest() { return guest; }
+    
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public boolean isHostReady() { return hostReady; }
@@ -158,12 +196,25 @@ public class Room {
     public void setGuestReady(boolean ready) { this.guestReady = ready; }
     public long getCreatedAt() { return createdAt; }
     public List<Grain> getGrains() { return grains; }
-    public int getHostScore() { return hostScore; }
-    public int getGuestScore() { return guestScore; }
+    // Synchronized score getters
+    public synchronized int getHostScore() { return hostScore; }
+    public synchronized int getGuestScore() { return guestScore; }
     public long getGameStartTime() { return gameStartTime; }
     public void setGameStartTime(long time) { this.gameStartTime = time; }
     
     public synchronized boolean isResultCalculated() { return resultCalculated; }
     public synchronized void setResultCalculated(boolean calculated) { this.resultCalculated = calculated; }
+    
+    /**
+     * Atomic check-and-set để đảm bảo chỉ 1 thread được phép tính kết quả
+     * @return true nếu set thành công (chưa calculated), false nếu đã calculated
+     */
+    public synchronized boolean trySetResultCalculated() {
+        if (resultCalculated) {
+            return false; // Đã được tính rồi
+        }
+        resultCalculated = true;
+        return true; // Set thành công, thread này được phép tính
+    }
 }
 

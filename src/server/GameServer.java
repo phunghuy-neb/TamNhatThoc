@@ -190,8 +190,12 @@ public class GameServer {
                     // Xử lý mất kết nối
                     for (String userId : disconnected) {
                         ClientHandler handler = onlineClients.get(userId);
-                        if (handler != null) {
+                        if (handler != null && handler.getUser() != null) {
                             System.out.println("⚠️ Client timeout: " + handler.getUser().getUsername());
+                            handler.handleDisconnect();
+                        } else if (handler != null) {
+                            // Handler exists but user is null - still disconnect
+                            System.out.println("⚠️ Client timeout: Unknown user (null)");
                             handler.handleDisconnect();
                         }
                     }

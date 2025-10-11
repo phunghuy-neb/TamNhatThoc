@@ -28,6 +28,7 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
     private JButton joinRoomButton;
     private JButton leaderboardButton;
     private JButton historyButton;
+    private JButton profileButton;
     private JButton logoutButton;
     
     public MainMenuFrame(GameClient client, JSONObject user) {
@@ -105,16 +106,7 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         JScrollPane scrollPane = new JScrollPane(onlineUsersTable);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Button panel for inviting
-        JPanel invitePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton inviteButton = new JButton("Gửi lời mời");
-        inviteButton.setBackground(new Color(255, 193, 7));
-        inviteButton.setForeground(Color.BLACK);
-        inviteButton.setFocusPainted(false);
-        inviteButton.setFont(new Font("Arial", Font.BOLD, 12));
-        inviteButton.addActionListener(e -> handleInvite());
-        invitePanel.add(inviteButton);
-        centerPanel.add(invitePanel, BorderLayout.SOUTH);
+        // Removed invite button panel as requested
         
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         
@@ -167,8 +159,17 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         historyButton.setFont(new Font("Arial", Font.BOLD, 12));
         historyButton.addActionListener(e -> handleHistory());
         
+        profileButton = new JButton("Thông Tin Cá Nhân");
+        profileButton.setPreferredSize(new Dimension(150, 35));
+        profileButton.setBackground(new Color(33, 150, 243));
+        profileButton.setForeground(Color.BLACK);
+        profileButton.setFocusPainted(false);
+        profileButton.setFont(new Font("Arial", Font.BOLD, 12));
+        profileButton.addActionListener(e -> handleProfile());
+        
         infoPanel.add(leaderboardButton);
         infoPanel.add(historyButton);
+        infoPanel.add(profileButton);
         
         bottomPanel.add(roomPanel);
         bottomPanel.add(infoPanel);
@@ -198,20 +199,6 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         client.sendMessage(packet.toString());
     }
     
-    private void handleInvite() {
-        int selectedRow = onlineUsersTable.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn người chơi!", 
-                "Lỗi", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // Cần có phòng trước khi mời
-        JOptionPane.showMessageDialog(this, 
-            "Vui lòng tạo phòng trước khi gửi lời mời!", 
-            "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
     private void handleLeaderboard() {
         if (leaderboardDialogOpen) return; // Tránh mở 2 dialog
         
@@ -226,6 +213,11 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         JSONObject packet = new JSONObject();
         packet.put("type", Protocol.GET_HISTORY);
         client.sendMessage(packet.toString());
+    }
+    
+    private void handleProfile() {
+        ProfileFrame profileFrame = new ProfileFrame(client, currentUser);
+        profileFrame.setVisible(true);
     }
     
     private void handleLogout() {
@@ -418,6 +410,9 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
     
     @Override
     public void dispose() {
+        // BUG FIX #26: Remove listener để tránh memory leak
+        client.removeMessageListener(this);
+        
         // Clear static reference khi dispose
         if (currentInstance == this) {
             currentInstance = null;

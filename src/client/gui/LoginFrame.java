@@ -132,6 +132,15 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
         // Hash password
         String hashedPassword = hashPassword(password);
         
+        // BUG FIX #19: Check null - nếu hash fail thì không gửi
+        if (hashedPassword == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Lỗi hệ thống: Không thể mã hóa mật khẩu!\nVui lòng thử lại sau.", 
+                "Lỗi nghiêm trọng", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         JSONObject packet = new JSONObject();
         packet.put("type", Protocol.LOGIN);
         packet.put("username", username);
@@ -169,6 +178,15 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
         }
         
         String hashedPassword = hashPassword(password);
+        
+        // BUG FIX #19: Check null - nếu hash fail thì không gửi
+        if (hashedPassword == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Lỗi hệ thống: Không thể mã hóa mật khẩu!\nVui lòng thử lại sau.", 
+                "Lỗi nghiêm trọng", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         
         JSONObject packet = new JSONObject();
         packet.put("type", Protocol.REGISTER);
@@ -245,6 +263,10 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
             JOptionPane.ERROR_MESSAGE);
     }
     
+    /**
+     * Hash password using SHA-256
+     * BUG FIX #19: Return null on error thay vì plain password
+     */
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -255,8 +277,18 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
             }
             return sb.toString();
         } catch (Exception e) {
-            return password;
+            System.err.println("❌ CRITICAL: Cannot hash password! SHA-256 not available!");
+            e.printStackTrace();
+            // BUG FIX #19: KHÔNG return plain password! Return null để caller handle
+            return null;
         }
+    }
+    
+    @Override
+    public void dispose() {
+        // BUG FIX #27: Remove listener để tránh memory leak
+        client.removeMessageListener(this);
+        super.dispose();
     }
     
     public static void main(String[] args) {
