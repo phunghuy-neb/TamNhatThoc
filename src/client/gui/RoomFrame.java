@@ -107,6 +107,10 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
         chatInput.addActionListener(e -> handleSendChat());
         
         JButton sendButton = new JButton("Gửi");
+        sendButton.setBackground(new Color(33, 150, 243));
+        sendButton.setForeground(Color.BLACK);
+        sendButton.setFocusPainted(false);
+        sendButton.setFont(new Font("Arial", Font.BOLD, 12));
         sendButton.addActionListener(e -> handleSendChat());
         
         chatInputPanel.add(chatInput, BorderLayout.CENTER);
@@ -124,7 +128,9 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
             startButton = new JButton("Bắt Đầu");
             startButton.setPreferredSize(new Dimension(120, 35));
             startButton.setBackground(new Color(76, 175, 80));
-            startButton.setForeground(Color.WHITE);
+            startButton.setForeground(Color.BLACK);
+            startButton.setFocusPainted(false);
+            startButton.setFont(new Font("Arial", Font.BOLD, 13));
             startButton.setEnabled(false); // Chờ guest ready
             startButton.addActionListener(e -> handleStartGame());
             buttonPanel.add(startButton);
@@ -132,14 +138,18 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
             inviteButton = new JButton("Mời Người Chơi");
             inviteButton.setPreferredSize(new Dimension(140, 35));
             inviteButton.setBackground(new Color(33, 150, 243));
-            inviteButton.setForeground(Color.WHITE);
+            inviteButton.setForeground(Color.BLACK);
+            inviteButton.setFocusPainted(false);
+            inviteButton.setFont(new Font("Arial", Font.BOLD, 13));
             inviteButton.addActionListener(e -> handleInvite());
             buttonPanel.add(inviteButton);
         } else {
             readyButton = new JButton("Sẵn Sàng");
             readyButton.setPreferredSize(new Dimension(120, 35));
             readyButton.setBackground(new Color(76, 175, 80));
-            readyButton.setForeground(Color.WHITE);
+            readyButton.setForeground(Color.BLACK);
+            readyButton.setFocusPainted(false);
+            readyButton.setFont(new Font("Arial", Font.BOLD, 13));
             readyButton.addActionListener(e -> handleReady());
             buttonPanel.add(readyButton);
         }
@@ -147,7 +157,9 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
         leaveButton = new JButton("Rời Phòng");
         leaveButton.setPreferredSize(new Dimension(120, 35));
         leaveButton.setBackground(new Color(244, 67, 54));
-        leaveButton.setForeground(Color.WHITE);
+        leaveButton.setForeground(Color.BLACK);
+        leaveButton.setFocusPainted(false);
+        leaveButton.setFont(new Font("Arial", Font.BOLD, 13));
         leaveButton.addActionListener(e -> handleLeaveRoom());
         buttonPanel.add(leaveButton);
         

@@ -94,15 +94,17 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
         loginButton = new JButton("Đăng Nhập");
         loginButton.setPreferredSize(new Dimension(120, 35));
         loginButton.setBackground(new Color(33, 150, 243));
-        loginButton.setForeground(Color.WHITE);
+        loginButton.setForeground(Color.BLACK);
         loginButton.setFocusPainted(false);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
         loginButton.addActionListener(e -> handleLogin());
         
         registerButton = new JButton("Đăng Ký");
         registerButton.setPreferredSize(new Dimension(120, 35));
         registerButton.setBackground(new Color(76, 175, 80));
-        registerButton.setForeground(Color.WHITE);
+        registerButton.setForeground(Color.BLACK);
         registerButton.setFocusPainted(false);
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
         registerButton.addActionListener(e -> handleRegister());
         
         buttonPanel.add(loginButton);

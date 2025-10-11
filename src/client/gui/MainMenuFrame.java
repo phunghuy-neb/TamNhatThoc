@@ -77,6 +77,10 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         topPanel.add(userInfoPanel, BorderLayout.WEST);
         
         logoutButton = new JButton("Đăng Xuất");
+        logoutButton.setBackground(new Color(244, 67, 54));
+        logoutButton.setForeground(Color.BLACK);
+        logoutButton.setFocusPainted(false);
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 12));
         logoutButton.addActionListener(e -> handleLogout());
         topPanel.add(logoutButton, BorderLayout.EAST);
         
@@ -104,6 +108,10 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         // Button panel for inviting
         JPanel invitePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton inviteButton = new JButton("Gửi lời mời");
+        inviteButton.setBackground(new Color(255, 193, 7));
+        inviteButton.setForeground(Color.BLACK);
+        inviteButton.setFocusPainted(false);
+        inviteButton.setFont(new Font("Arial", Font.BOLD, 12));
         inviteButton.addActionListener(e -> handleInvite());
         invitePanel.add(inviteButton);
         centerPanel.add(invitePanel, BorderLayout.SOUTH);
@@ -120,7 +128,9 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         createRoomButton = new JButton("Tạo Phòng");
         createRoomButton.setPreferredSize(new Dimension(120, 35));
         createRoomButton.setBackground(new Color(76, 175, 80));
-        createRoomButton.setForeground(Color.WHITE);
+        createRoomButton.setForeground(Color.BLACK);
+        createRoomButton.setFocusPainted(false);
+        createRoomButton.setFont(new Font("Arial", Font.BOLD, 13));
         createRoomButton.addActionListener(e -> handleCreateRoom());
         
         roomIdField = new JTextField(15);
@@ -129,7 +139,9 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         joinRoomButton = new JButton("Tham Gia");
         joinRoomButton.setPreferredSize(new Dimension(120, 35));
         joinRoomButton.setBackground(new Color(33, 150, 243));
-        joinRoomButton.setForeground(Color.WHITE);
+        joinRoomButton.setForeground(Color.BLACK);
+        joinRoomButton.setFocusPainted(false);
+        joinRoomButton.setFont(new Font("Arial", Font.BOLD, 13));
         joinRoomButton.addActionListener(e -> handleJoinRoom());
         
         roomPanel.add(createRoomButton);
@@ -141,10 +153,18 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         
         leaderboardButton = new JButton("Bảng Xếp Hạng");
         leaderboardButton.setPreferredSize(new Dimension(150, 35));
+        leaderboardButton.setBackground(new Color(255, 193, 7));
+        leaderboardButton.setForeground(Color.BLACK);
+        leaderboardButton.setFocusPainted(false);
+        leaderboardButton.setFont(new Font("Arial", Font.BOLD, 12));
         leaderboardButton.addActionListener(e -> handleLeaderboard());
         
         historyButton = new JButton("Lịch Sử Đấu");
         historyButton.setPreferredSize(new Dimension(150, 35));
+        historyButton.setBackground(new Color(255, 152, 0));
+        historyButton.setForeground(Color.BLACK);
+        historyButton.setFocusPainted(false);
+        historyButton.setFont(new Font("Arial", Font.BOLD, 12));
         historyButton.addActionListener(e -> handleHistory());
         
         infoPanel.add(leaderboardButton);

@@ -15,7 +15,7 @@ import java.util.List;
  * Client kết nối tới server
  */
 public class GameClient {
-    private static final String SERVER_HOST = "localhost";
+    private static final String SERVER_HOST = "26.3.190.0";
     private static final int SERVER_PORT = 8888;
     
     private Socket socket;

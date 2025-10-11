@@ -62,7 +62,9 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         refreshButton = new JButton("Lam moi");
         refreshButton.setPreferredSize(new Dimension(100, 30));
         refreshButton.setBackground(new Color(33, 150, 243));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
+        refreshButton.setFocusPainted(false);
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
         refreshButton.addActionListener(e -> requestOnlineUsers());
         
         JPanel searchInputPanel = new JPanel(new BorderLayout(5, 0));
@@ -107,14 +109,18 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         inviteButton = new JButton("Moi nguoi duoc chon");
         inviteButton.setPreferredSize(new Dimension(150, 35));
         inviteButton.setBackground(new Color(76, 175, 80));
-        inviteButton.setForeground(Color.WHITE);
+        inviteButton.setForeground(Color.BLACK);
+        inviteButton.setFocusPainted(false);
+        inviteButton.setFont(new Font("Arial", Font.BOLD, 12));
         inviteButton.setEnabled(false);
         inviteButton.addActionListener(e -> inviteSelectedPlayer());
         
         cancelButton = new JButton("Dong");
         cancelButton.setPreferredSize(new Dimension(100, 35));
         cancelButton.setBackground(new Color(158, 158, 158));
-        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setForeground(Color.BLACK);
+        cancelButton.setFocusPainted(false);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 12));
         cancelButton.addActionListener(e -> dispose());
         
         buttonPanel.add(inviteButton);
