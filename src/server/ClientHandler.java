@@ -605,7 +605,7 @@ public class ClientHandler implements Runnable {
         }
         
         // Sinh dữ liệu hạt (50 gạo + 50 thóc)
-        List<Grain> grains = currentRoom.generateGrains(5, 5);
+        List<Grain> grains = currentRoom.generateGrains(50, 50);
         currentRoom.setStatus("playing");
         currentRoom.setGameStartTime(System.currentTimeMillis());
         
@@ -692,7 +692,7 @@ public class ClientHandler implements Runnable {
         int newScore = packet.getInt("new_score");
         
         // ISSUE #3: Validate score trong range hợp lệ (0-10)
-        if (newScore < 0 || newScore > 10) {
+        if (newScore < 0 || newScore > 100) {
             System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid score: " + newScore);
             sendError(Protocol.ERR_INVALID_PACKET, "Điểm không hợp lệ!");
             return;
@@ -733,7 +733,7 @@ public class ClientHandler implements Runnable {
         int finalScore = packet.getInt("final_score");
         
         // ISSUE #3: Validate final score
-        if (finalScore < 0 || finalScore > 10) {
+        if (finalScore < 0 || finalScore > 100) {
             System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid final_score: " + finalScore);
             sendError(Protocol.ERR_INVALID_PACKET, "Điểm không hợp lệ!");
             return;
