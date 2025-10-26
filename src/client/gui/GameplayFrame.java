@@ -553,7 +553,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
                 client.sendMessage(packet.toString());
                 
                 // Kiểm tra nếu đạt điểm tối đa (10 điểm)
-                if (myScore >= 10) {
+                if (myScore >= 100) {
                     handleMaxScore();
                 }
                 

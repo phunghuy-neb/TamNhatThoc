@@ -787,9 +787,9 @@ public class ClientHandler implements Runnable {
         boolean isQuit = packet.optBoolean("is_quit", false); // Kiểm tra có phải thoát không
         
         // ISSUE #3: Validate final score
-        if (finalScore < 0 || finalScore > 10) {
+        if (finalScore < 0 || finalScore > 100) {
             System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid timeout score: " + finalScore);
-            finalScore = Math.max(0, Math.min(10, finalScore)); // Clamp to valid range
+            finalScore = Math.max(0, Math.min(100, finalScore)); // Clamp to valid range
             System.out.println("🔧 Clamped score to: " + finalScore);
         }
         
