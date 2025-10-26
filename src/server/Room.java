@@ -26,6 +26,7 @@ public class Room {
     private boolean guestQuit; // Flag để đánh dấu guest đã thoát
     private long gameStartTime;
     private boolean resultCalculated; // Flag để đảm bảo chỉ tính kết quả 1 lần
+    private int totalGrains; // Tổng số hạt trong trận đấu này
     
     public Room(String roomId, ClientHandler host) {
         this.roomId = roomId;
@@ -216,5 +217,8 @@ public class Room {
         resultCalculated = true;
         return true; // Set thành công, thread này được phép tính
     }
+    
+    public int getTotalGrains() { return totalGrains; }
+    public void setTotalGrains(int totalGrains) { this.totalGrains = totalGrains; }
 }
 

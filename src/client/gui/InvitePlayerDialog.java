@@ -42,8 +42,8 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         client.addMessageListener(this);
         initComponents();
         
-        // Yeu cau danh sach nguoi choi online
-        requestOnlineUsers();
+        // Yeu cau danh sach tat ca nguoi choi
+        requestAllUsers();
     }
     
     private void initComponents() {
@@ -65,7 +65,7 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
-        refreshButton.addActionListener(e -> requestOnlineUsers());
+        refreshButton.addActionListener(e -> requestAllUsers());
         
         JPanel searchInputPanel = new JPanel(new BorderLayout(5, 0));
         searchInputPanel.add(new JLabel("Ten nguoi choi:"), BorderLayout.WEST);
@@ -138,10 +138,10 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         });
     }
     
-    private void requestOnlineUsers() {
+    private void requestAllUsers() {
         // Gui yeu cau lay danh sach nguoi choi online
         JSONObject packet = new JSONObject();
-        packet.put("type", Protocol.GET_ONLINE_USERS);
+        packet.put("type", Protocol.GET_ALL_USERS);
         client.sendMessage(packet.toString());
         
         searchField.setText("");
@@ -172,10 +172,33 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
             int totalScore = player.getInt("total_score");
             String status = player.getString("status");
             
-            // Chỉ ẩn người đang chơi (bản thân đã được lọc rồi)
-            if (!"playing".equals(status)) {
-                String statusText = "online".equals(status) ? "San sang" : "Ban";
-                Object[] row = {username, totalScore, statusText, "Moi"};
+            // Chỉ hiển thị những người có thể mời được
+            boolean canInvite = false;
+            String statusText = "";
+            
+            if ("online".equals(status)) {
+                canInvite = true;
+                statusText = "Sẵn sàng";
+            } else if ("waiting".equals(status) && !player.has("room_info")) {
+                // Đang tìm trận (không trong phòng)
+                canInvite = true;
+                statusText = "Đang tìm trận";
+            } else if ("waiting".equals(status) && player.has("room_info")) {
+                // Đang trong phòng khác
+                canInvite = false;
+                statusText = "Đang trong phòng";
+            } else if ("playing".equals(status)) {
+                // Đang chơi game
+                canInvite = false;
+                statusText = "Đang chơi";
+            } else {
+                // Offline
+                canInvite = false;
+                statusText = "Offline";
+            }
+            
+            if (canInvite) {
+                Object[] row = {username, totalScore, statusText, "Mời"};
                 tableModel.addRow(row);
             }
         }

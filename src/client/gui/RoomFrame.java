@@ -238,9 +238,9 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
             MainMenuFrame mainMenu = new MainMenuFrame(client, currentUser);
             mainMenu.setVisible(true);
             
-            // Yêu cầu cập nhật danh sách online
+            // Yêu cầu cập nhật danh sách tất cả người chơi
             JSONObject request = new JSONObject();
-            request.put("type", Protocol.GET_ONLINE_USERS);
+            request.put("type", Protocol.GET_ALL_USERS);
             client.sendMessage(request.toString());
         }
     }
@@ -275,6 +275,9 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
                         break;
                     case Protocol.ERROR:
                         handleError(response);
+                        break;
+                    case Protocol.JOIN_REQUEST_NOTIFICATION:
+                        handleJoinRequestNotification(response);
                         break;
                 }
             } catch (Exception e) {
@@ -334,7 +337,7 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
             
             // Yêu cầu cập nhật danh sách online
             JSONObject request = new JSONObject();
-            request.put("type", Protocol.GET_ONLINE_USERS);
+            request.put("type", Protocol.GET_ALL_USERS);
             client.sendMessage(request.toString());
         }
     }
@@ -373,6 +376,26 @@ public class RoomFrame extends JFrame implements GameClient.MessageListener {
     private void handleError(JSONObject response) {
         String message = response.getString("message");
         JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void handleJoinRequestNotification(JSONObject response) {
+        String requesterUsername = response.getString("requester_username");
+        int requesterId = response.getInt("requester_id");
+        String roomId = response.getString("room_id");
+        
+        int choice = JOptionPane.showConfirmDialog(this,
+            requesterUsername + " muốn gia nhập phòng " + roomId + ".\nBạn có đồng ý không?",
+            "Yêu cầu gia nhập phòng",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE);
+        
+        // Gửi phản hồi
+        JSONObject packet = new JSONObject();
+        packet.put("type", Protocol.JOIN_REQUEST_RESPONSE);
+        packet.put("accept", choice == JOptionPane.YES_OPTION);
+        packet.put("room_id", roomId);
+        packet.put("requester_id", requesterId);
+        client.sendMessage(packet.toString());
     }
     
     @Override

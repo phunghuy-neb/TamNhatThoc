@@ -28,6 +28,12 @@ public class Protocol {
     public static final String HEARTBEAT = "HEARTBEAT";
     public static final String FORGOT_PASSWORD = "FORGOT_PASSWORD";
     public static final String GET_ONLINE_USERS = "GET_ONLINE_USERS";
+    public static final String REQUEST_JOIN_ROOM = "REQUEST_JOIN_ROOM";
+    public static final String JOIN_REQUEST_RESPONSE = "JOIN_REQUEST_RESPONSE";
+    public static final String FIND_MATCH = "FIND_MATCH";
+    public static final String CANCEL_FIND_MATCH = "CANCEL_FIND_MATCH";
+    public static final String MATCH_FOUND = "MATCH_FOUND";
+    public static final String GET_ALL_USERS = "GET_ALL_USERS";
     
     // Server -> Client
     public static final String REGISTER_RESPONSE = "REGISTER_RESPONSE";
@@ -54,6 +60,8 @@ public class Protocol {
     public static final String PROFILE_DATA = "PROFILE_DATA";
     public static final String UPDATE_SUCCESS = "UPDATE_SUCCESS";
     public static final String ERROR = "ERROR";
+    public static final String JOIN_REQUEST_NOTIFICATION = "JOIN_REQUEST_NOTIFICATION";
+    public static final String JOIN_REQUEST_RESULT = "JOIN_REQUEST_RESULT";
     
     // Error codes
     public static final int ERR_USERNAME_EXISTS = 1001;
@@ -72,5 +80,7 @@ public class Protocol {
     public static final int ERR_CONNECTION_LOST = 4001;
     public static final int ERR_TIMEOUT = 4002;
     public static final int ERR_INVALID_PACKET = 4003;
+    public static final int ERR_ROOM_COOLDOWN = 5001;
+    public static final int ERR_JOIN_REQUEST_DENIED = 5002;
 }
 

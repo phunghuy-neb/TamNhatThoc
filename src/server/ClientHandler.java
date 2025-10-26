@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Random;
 
 
 /**
@@ -24,8 +25,8 @@ public class ClientHandler implements Runnable {
     private PrintWriter out;
     private BufferedReader in;
     private User user;
-    private String status; // "online", "playing"
-    private Room currentRoom;
+    public String status; // "online", "playing"
+    public Room currentRoom;
     private long lastHeartbeat;
     
     public ClientHandler(Socket socket, GameServer server) {
@@ -121,6 +122,21 @@ public class ClientHandler implements Runnable {
                     break;
                 case Protocol.GET_ONLINE_USERS:
                     handleGetOnlineUsers();
+                    break;
+                case Protocol.REQUEST_JOIN_ROOM:
+                    handleRequestJoinRoom(packet);
+                    break;
+                case Protocol.JOIN_REQUEST_RESPONSE:
+                    handleJoinRequestResponse(packet);
+                    break;
+                case Protocol.FIND_MATCH:
+                    handleFindMatch();
+                    break;
+                case Protocol.CANCEL_FIND_MATCH:
+                    handleCancelFindMatch();
+                    break;
+                case Protocol.GET_ALL_USERS:
+                    handleGetAllUsers();
                     break;
                 default:
                     if (isConnected()) {
@@ -249,7 +265,7 @@ public class ClientHandler implements Runnable {
                 new Thread(() -> {
                     try {
                         Thread.sleep(100); // Delay 100ms để client sẵn sàng
-                        server.broadcastOnlineUsers();
+                        server.broadcastAllUsers();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -287,14 +303,14 @@ public class ClientHandler implements Runnable {
         
         Room room = server.createRoom(this);
         currentRoom = room;
-        status = "playing";
+        status = "waiting"; // Đang trong phòng chờ, chưa chơi
         
         JSONObject response = new JSONObject();
         response.put("type", Protocol.ROOM_CREATED);
         response.put("room_id", room.getRoomId());
         sendMessage(response.toString());
         
-        server.broadcastOnlineUsers();
+        server.broadcastAllUsers();
         System.out.println("🏠 Phòng mới: " + room.getRoomId() + " - Host: " + user.getUsername());
     }
     
@@ -346,7 +362,7 @@ public class ClientHandler implements Runnable {
         
         room.addGuest(this);
         currentRoom = room;
-        status = "playing";
+        status = "waiting"; // Đang trong phòng chờ, chưa chơi
         
         // BUG FIX #21: NOW SAFE - host đã được validate
         // Thông báo cho guest
@@ -363,7 +379,7 @@ public class ClientHandler implements Runnable {
         notification.put("user_id", user.getUserId());
         host.sendMessage(notification.toString());
         
-        server.broadcastOnlineUsers();
+        server.broadcastAllUsers();
         System.out.println("👥 " + user.getUsername() + " tham gia phòng " + roomId);
     }
     
@@ -420,7 +436,7 @@ public class ClientHandler implements Runnable {
         
         currentRoom = null;
         status = "online";
-        server.broadcastOnlineUsers();
+        server.broadcastAllUsers();
     }
     
     /**
@@ -464,6 +480,17 @@ public class ClientHandler implements Runnable {
         ClientHandler target = server.getClientHandler(String.valueOf(toUserId));
         if (target == null || target.getUser() == null) {
             sendError(Protocol.ERR_CONNECTION_LOST, "Người chơi không online");
+            return;
+        }
+        
+        // Kiểm tra trạng thái của người chơi
+        String targetStatus = target.getStatus();
+        if ("playing".equals(targetStatus)) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Người chơi đang trong trận, không thể mời!");
+            return;
+        }
+        if ("waiting".equals(targetStatus) && target.currentRoom != null) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Người chơi đang trong phòng khác, không thể mời!");
             return;
         }
         
@@ -604,8 +631,14 @@ public class ClientHandler implements Runnable {
             return;
         }
         
-        // Sinh dữ liệu hạt (50 gạo + 50 thóc)
-        List<Grain> grains = currentRoom.generateGrains(50, 50);
+        // Sinh dữ liệu hạt ngẫu nhiên (50-100 hạt tổng cộng)
+        Random rand = new Random();
+        int totalGrains = 50 + rand.nextInt(51); // 50-100 hạt
+        int riceCount = 25 + rand.nextInt(26);   // 25-50 hạt gạo
+        int paddyCount = totalGrains - riceCount; // Phần còn lại là thóc
+        
+        List<Grain> grains = currentRoom.generateGrains(riceCount, paddyCount);
+        currentRoom.setTotalGrains(totalGrains); // Lưu tổng số hạt vào room
         currentRoom.setStatus("playing");
         currentRoom.setGameStartTime(System.currentTimeMillis());
         
@@ -623,7 +656,8 @@ public class ClientHandler implements Runnable {
             grainsArray.put(grainObj);
         }
         gameStart.put("grains", grainsArray);
-        gameStart.put("duration", 120); // 2 phút
+        gameStart.put("duration", 300); // 5 phút
+        gameStart.put("total_grains", totalGrains); // Tổng số hạt để client biết max score
         
         // BUG FIX #20: Validate BOTH players exist before accessing
         // Race condition: Player có thể disconnect NGAY TRƯỚC khi game start
@@ -657,7 +691,7 @@ public class ClientHandler implements Runnable {
                 guest.status = "online";
             }
             
-            server.broadcastOnlineUsers();
+            server.broadcastAllUsers();
             return; // Không start game
         }
         
@@ -669,6 +703,10 @@ public class ClientHandler implements Runnable {
         }
         
         // ✅ NOW SAFE TO ACCESS - Both players exist and have valid User objects
+        // Cập nhật status của cả 2 player thành "playing"
+        host.status = "playing";
+        guest.status = "playing";
+        
         JSONObject hostGameStart = new JSONObject(gameStart.toString());
         hostGameStart.put("opponent_username", guest.getUser().getUsername());
         host.sendMessage(hostGameStart.toString());
@@ -678,6 +716,9 @@ public class ClientHandler implements Runnable {
         guest.sendMessage(guestGameStart.toString());
         
         System.out.println("🎮 Trận đấu bắt đầu: " + currentRoom.getRoomId());
+        
+        // Cập nhật danh sách online users để hiển thị đúng trạng thái
+        server.broadcastAllUsers();
     }
     
     /**
@@ -691,9 +732,10 @@ public class ClientHandler implements Runnable {
         
         int newScore = packet.getInt("new_score");
         
-        // ISSUE #3: Validate score trong range hợp lệ (0-10)
-        if (newScore < 0 || newScore > 100) {
-            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid score: " + newScore);
+        // ISSUE #3: Validate score trong range hợp lệ (0-totalGrains)
+        int maxScore = currentRoom.getTotalGrains();
+        if (newScore < 0 || newScore > maxScore) {
+            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid score: " + newScore + " (max: " + maxScore + ")");
             sendError(Protocol.ERR_INVALID_PACKET, "Điểm không hợp lệ!");
             return;
         }
@@ -733,8 +775,9 @@ public class ClientHandler implements Runnable {
         int finalScore = packet.getInt("final_score");
         
         // ISSUE #3: Validate final score
-        if (finalScore < 0 || finalScore > 100) {
-            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid final_score: " + finalScore);
+        int maxScore = currentRoom.getTotalGrains();
+        if (finalScore < 0 || finalScore > maxScore) {
+            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid final_score: " + finalScore + " (max: " + maxScore + ")");
             sendError(Protocol.ERR_INVALID_PACKET, "Điểm không hợp lệ!");
             return;
         }
@@ -787,9 +830,10 @@ public class ClientHandler implements Runnable {
         boolean isQuit = packet.optBoolean("is_quit", false); // Kiểm tra có phải thoát không
         
         // ISSUE #3: Validate final score
-        if (finalScore < 0 || finalScore > 100) {
-            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid timeout score: " + finalScore);
-            finalScore = Math.max(0, Math.min(100, finalScore)); // Clamp to valid range
+        int maxScore = currentRoom.getTotalGrains();
+        if (finalScore < 0 || finalScore > maxScore) {
+            System.out.println("⚠️ HACK ATTEMPT: " + user.getUsername() + " sent invalid timeout score: " + finalScore + " (max: " + maxScore + ")");
+            finalScore = Math.max(0, Math.min(maxScore, finalScore)); // Clamp to valid range
             System.out.println("🔧 Clamped score to: " + finalScore);
         }
         
@@ -859,7 +903,7 @@ public class ClientHandler implements Runnable {
                 guest.status = "online";
             }
             server.removeRoom(room.getRoomId());
-            server.broadcastOnlineUsers();
+            server.broadcastAllUsers();
             
             return; // Không thể tính kết quả, nhưng ít nhất đã cleanup
         }
@@ -933,9 +977,33 @@ public class ClientHandler implements Runnable {
             guest.getUser().getUsername()  // ✅ Player 2 name
         );
         
-        // Cập nhật điểm
-        server.getDbManager().updateUserScore(String.valueOf(host.getUser().getUserId()), hostScore, hostResult);
-        server.getDbManager().updateUserScore(String.valueOf(guest.getUser().getUserId()), guestScore, guestResult);
+        // Cập nhật điểm - tính điểm được cộng thêm dựa trên kết quả
+        int hostPointsToAdd = hostScore; // Điểm được cộng thêm cho host
+        int guestPointsToAdd = guestScore; // Điểm được cộng thêm cho guest
+        
+        // Người thua chỉ được cộng 50% điểm (làm tròn lên)
+        if ("lose".equals(hostResult)) {
+            hostPointsToAdd = (hostScore + 1) / 2; // Làm tròn lên
+        }
+        if ("lose".equals(guestResult)) {
+            guestPointsToAdd = (guestScore + 1) / 2; // Làm tròn lên
+        }
+        
+        System.out.println("🔍 DEBUG: Updating scores - Host: " + host.getUser().getUsername() + 
+                          " (score: " + hostScore + ", result: " + hostResult + ", pointsToAdd: " + hostPointsToAdd + ")");
+        System.out.println("🔍 DEBUG: Updating scores - Guest: " + guest.getUser().getUsername() + 
+                          " (score: " + guestScore + ", result: " + guestResult + ", pointsToAdd: " + guestPointsToAdd + ")");
+        
+        // Debug chi tiết cho việc tính điểm
+        if ("lose".equals(hostResult)) {
+            System.out.println("🔍 HOST LOSE: " + hostScore + " -> " + hostPointsToAdd + " (50% with rounding up)");
+        }
+        if ("lose".equals(guestResult)) {
+            System.out.println("🔍 GUEST LOSE: " + guestScore + " -> " + guestPointsToAdd + " (50% with rounding up)");
+        }
+        
+        server.getDbManager().updateUserScore(String.valueOf(host.getUser().getUserId()), hostPointsToAdd, hostResult);
+        server.getDbManager().updateUserScore(String.valueOf(guest.getUser().getUserId()), guestPointsToAdd, guestResult);
         
         // Gửi kết quả
         // Gửi kết quả cho cả 2 player (nếu còn kết nối)
@@ -959,7 +1027,7 @@ public class ClientHandler implements Runnable {
         host.status = "online";
         guest.status = "online";
         server.removeRoom(roomId);
-        server.broadcastOnlineUsers();
+        server.broadcastAllUsers();
         
         System.out.println("🏆 Trận đấu kết thúc: " + hostScore + " - " + guestScore);
     }
@@ -1177,6 +1245,24 @@ public class ClientHandler implements Runnable {
                 userObj.put("username", user.getUsername());
                 userObj.put("total_score", currentScore);
                 userObj.put("status", handler.getStatus());
+                
+                // Thêm thông tin phòng nếu đang trong phòng (waiting hoặc playing)
+                if (("waiting".equals(handler.getStatus()) || "playing".equals(handler.getStatus())) && handler.currentRoom != null) {
+                    Room room = handler.currentRoom;
+                    JSONObject roomInfo = new JSONObject();
+                    roomInfo.put("room_id", room.getRoomId());
+                    roomInfo.put("players_count", room.getGuest() != null ? 2 : 1);
+                    roomInfo.put("max_players", 2);
+                    roomInfo.put("can_join", !server.isRoomInCooldown(room.getRoomId()));
+                    userObj.put("room_info", roomInfo);
+                    
+                    // Debug log
+                    System.out.println("🏠 Sending room_info for " + user.getUsername() + 
+                                     " (status: " + handler.getStatus() + 
+                                     ", room: " + room.getRoomId() + 
+                                     ", players: " + (room.getGuest() != null ? 2 : 1) + "/2)");
+                }
+                
                 usersList.add(userObj);
             }
         }
@@ -1185,8 +1271,212 @@ public class ClientHandler implements Runnable {
         sendMessage(response.toString());
     }
     
+    private void handleRequestJoinRoom(JSONObject packet) {
+        // BUG FIX #32: Validate authentication
+        if (user == null) {
+            sendError(Protocol.ERR_SESSION_EXPIRED, "Vui lòng đăng nhập trước!");
+            return;
+        }
+        
+        String roomId = packet.getString("room_id");
+        System.out.println("🔍 DEBUG: Request join room " + roomId + " from " + user.getUsername());
+        
+        Room room = server.getRoom(roomId);
+        
+        if (room == null) {
+            System.out.println("❌ DEBUG: Room " + roomId + " not found");
+            sendError(Protocol.ERR_ROOM_NOT_FOUND, "Phòng không tồn tại");
+            return;
+        }
+        
+        // Kiểm tra cooldown
+        if (server.isRoomInCooldown(roomId)) {
+            long remaining = server.getRoomCooldownRemaining(roomId);
+            sendError(Protocol.ERR_ROOM_COOLDOWN, "Lời mời quá nhiều, xin đợi trong " + remaining + " giây nữa");
+            return;
+        }
+        
+        // Xử lý request (tăng counter, có thể trigger cooldown)
+        if (!server.handleRoomJoinRequest(roomId)) {
+            long remaining = server.getRoomCooldownRemaining(roomId);
+            sendError(Protocol.ERR_ROOM_COOLDOWN, "Lời mời quá nhiều, xin đợi trong " + remaining + " giây nữa");
+            return;
+        }
+        
+        // Gửi thông báo cho chủ phòng
+        ClientHandler host = room.getHost();
+        if (host != null && host.isConnected()) {
+            JSONObject notification = new JSONObject();
+            notification.put("type", Protocol.JOIN_REQUEST_NOTIFICATION);
+            notification.put("requester_username", user.getUsername());
+            notification.put("requester_id", user.getUserId());
+            notification.put("room_id", roomId);
+            host.sendMessage(notification.toString());
+        }
+        
+        // Gửi response cho người xin
+        JSONObject response = new JSONObject();
+        response.put("type", Protocol.JOIN_REQUEST_RESULT);
+        response.put("status", "sent");
+        response.put("message", "Đã gửi yêu cầu gia nhập phòng");
+        sendMessage(response.toString());
+    }
+    
+    private void handleJoinRequestResponse(JSONObject packet) {
+        // BUG FIX #32: Validate authentication
+        if (user == null) {
+            sendError(Protocol.ERR_SESSION_EXPIRED, "Vui lòng đăng nhập trước!");
+            return;
+        }
+        
+        boolean accept = packet.getBoolean("accept");
+        String roomId = packet.getString("room_id");
+        int requesterId = packet.getInt("requester_id");
+        
+        // Kiểm tra quyền (chỉ chủ phòng mới được phản hồi)
+        if (currentRoom == null || !currentRoom.isHost(this)) {
+            sendError(Protocol.ERR_NOT_HOST, "Bạn không phải chủ phòng");
+            return;
+        }
+        
+        if (!roomId.equals(currentRoom.getRoomId())) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Phòng không khớp");
+            return;
+        }
+        
+        // Gửi kết quả cho người xin
+        ClientHandler requester = server.getClientHandler(String.valueOf(requesterId));
+        if (requester != null && requester.isConnected()) {
+            JSONObject result = new JSONObject();
+            result.put("type", Protocol.JOIN_REQUEST_RESULT);
+            
+            if (accept) {
+                result.put("status", "accepted");
+                result.put("message", "Yêu cầu gia nhập đã được chấp nhận");
+                
+                // Tự động join phòng
+                JSONObject joinPacket = new JSONObject();
+                joinPacket.put("room_id", roomId);
+                requester.handleJoinRoom(joinPacket);
+            } else {
+                result.put("status", "denied");
+                result.put("message", "Yêu cầu gia nhập đã bị từ chối");
+            }
+            
+            requester.sendMessage(result.toString());
+        }
+    }
+    
+    private void handleFindMatch() {
+        // BUG FIX #32: Validate authentication
+        if (user == null) {
+            sendError(Protocol.ERR_SESSION_EXPIRED, "Vui lòng đăng nhập trước!");
+            return;
+        }
+        
+        // Kiểm tra đã trong phòng chưa
+        if (currentRoom != null) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Bạn đã ở trong phòng rồi!");
+            return;
+        }
+        
+        // Cập nhật status thành waiting
+        this.status = "waiting";
+        
+        // Thêm vào hàng đợi tìm trận
+        server.addToMatchmakingQueue(this);
+        
+        // Broadcast cập nhật danh sách người chơi
+        server.broadcastAllUsers();
+        
+        JSONObject response = new JSONObject();
+        response.put("type", Protocol.MATCH_FOUND);
+        response.put("status", "searching");
+        response.put("message", "Đang tìm đối thủ...");
+        sendMessage(response.toString());
+    }
+    
+    private void handleCancelFindMatch() {
+        // BUG FIX #32: Validate authentication
+        if (user == null) {
+            sendError(Protocol.ERR_SESSION_EXPIRED, "Vui lòng đăng nhập trước!");
+            return;
+        }
+        
+        // Cập nhật status về online
+        this.status = "online";
+        
+        // Xóa khỏi hàng đợi tìm trận
+        server.removeFromMatchmakingQueue(this);
+        
+        // Broadcast cập nhật danh sách người chơi
+        server.broadcastAllUsers();
+        
+        JSONObject response = new JSONObject();
+        response.put("type", Protocol.MATCH_FOUND);
+        response.put("status", "cancelled");
+        response.put("message", "Đã hủy tìm trận");
+        sendMessage(response.toString());
+    }
+    
+    private void handleGetAllUsers() {
+        // BUG FIX #32: Validate authentication
+        if (user == null) {
+            sendError(Protocol.ERR_SESSION_EXPIRED, "Vui lòng đăng nhập trước!");
+            return;
+        }
+        
+        List<User> allUsers = server.getAllUsers();
+        
+        JSONObject response = new JSONObject();
+        response.put("type", Protocol.ONLINE_USERS_UPDATE);
+        
+        List<JSONObject> usersList = new ArrayList<>();
+        for (User dbUser : allUsers) {
+            JSONObject userObj = new JSONObject();
+            userObj.put("user_id", dbUser.getUserId());
+            userObj.put("username", dbUser.getUsername());
+            userObj.put("total_score", dbUser.getTotalScore());
+            
+            // Kiểm tra trạng thái online
+            ClientHandler onlineHandler = server.getClientHandler(String.valueOf(dbUser.getUserId()));
+            if (onlineHandler != null) {
+                userObj.put("status", onlineHandler.getStatus());
+                
+                // Debug log
+                System.out.println("🔍 DEBUG: User " + dbUser.getUsername() + " status: " + onlineHandler.getStatus() + 
+                                 ", currentRoom: " + (onlineHandler.currentRoom != null ? onlineHandler.currentRoom.getRoomId() : "null"));
+                
+                // Thêm thông tin phòng nếu đang trong phòng
+                if (("waiting".equals(onlineHandler.getStatus()) || "playing".equals(onlineHandler.getStatus())) && onlineHandler.currentRoom != null) {
+                    Room room = onlineHandler.currentRoom;
+                    JSONObject roomInfo = new JSONObject();
+                    roomInfo.put("room_id", room.getRoomId());
+                    roomInfo.put("players_count", room.getGuest() != null ? 2 : 1);
+                    roomInfo.put("max_players", 2);
+                    roomInfo.put("can_join", !server.isRoomInCooldown(room.getRoomId()));
+                    userObj.put("room_info", roomInfo);
+                    
+                    System.out.println("🏠 DEBUG: Added room_info for " + dbUser.getUsername() + 
+                                     " (room: " + room.getRoomId() + 
+                                     ", players: " + (room.getGuest() != null ? 2 : 1) + "/2)");
+                }
+            } else {
+                userObj.put("status", "offline");
+            }
+            
+            usersList.add(userObj);
+        }
+        response.put("users", usersList);
+        
+        sendMessage(response.toString());
+    }
+    
     public void handleDisconnect() {
         if (user != null) {
+            // Xóa khỏi matchmaking queue nếu có
+            server.removeFromMatchmakingQueue(this);
+            
             // BUG FIX #4: Refactor để sử dụng calculateGameResult() thống nhất
             if (currentRoom != null && "playing".equals(currentRoom.getStatus())) {
                 System.out.println("🔌 Player " + user.getUsername() + " disconnected during game");

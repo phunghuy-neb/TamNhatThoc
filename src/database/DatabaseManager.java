@@ -221,16 +221,22 @@ public class DatabaseManager {
             int newScore = currentScore;
             
             // Cập nhật kết quả và điểm
+            System.out.println("🔍 DEBUG DatabaseManager: User " + userId + ", result: " + result + 
+                             ", scoreToAdd: " + scoreToAdd + ", currentScore: " + currentScore);
+            
             if ("win".equals(result)) {
                 wins++;
                 newScore = currentScore + scoreToAdd; // Người thắng: cộng toàn bộ điểm
+                System.out.println("✅ WIN: " + scoreToAdd + " points added, new score: " + newScore);
             } else if ("lose".equals(result)) {
                 losses++;
-                // Người thua: KHÔNG cộng điểm (hoặc chỉ cộng 10%)
-                // newScore = currentScore + (scoreToAdd / 10);
+                int halfScore = (scoreToAdd + 1) / 2; // Làm tròn lên
+                newScore = currentScore + halfScore; // Người thua: cộng 50% điểm
+                System.out.println("❌ LOSE: " + halfScore + " points added (50% of " + scoreToAdd + "), new score: " + newScore);
             } else if ("draw".equals(result)) {
                 draws++;
-                newScore = currentScore + (scoreToAdd / 2); // Hòa: cộng 50% điểm
+                newScore = currentScore + scoreToAdd; // Hòa: cộng toàn bộ điểm
+                System.out.println("🤝 DRAW: " + scoreToAdd + " points added, new score: " + newScore);
             }
             
             // Tính tỷ lệ thắng
@@ -321,6 +327,27 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return leaderboard;
+    }
+    
+    /**
+     * Lấy tất cả người chơi trong database
+     */
+    public List<User> getAllUsers() {
+        List<User> allUsers = new ArrayList<>();
+        try {
+            FindIterable<Document> results = usersCollection.find()
+                    .sort(Sorts.orderBy(
+                        Sorts.descending("total_score"),
+                        Sorts.descending("total_wins")
+                    ));
+            
+            for (Document doc : results) {
+                allUsers.add(documentToUser(doc));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return allUsers;
     }
     
     // ==================== MATCH OPERATIONS ====================

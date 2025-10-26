@@ -30,6 +30,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
     private volatile int myScore; // volatile để tránh race condition
     private int opponentScore;
     private int timeLeft; // giây
+    private int totalGrains; // Tổng số hạt trong trận đấu này
     
     private JLabel timerLabel;
     private JLabel myScoreLabel;
@@ -58,8 +59,9 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         this.myScore = 0;
         System.out.println("🔍 Constructor - myScore initialized to: " + myScore + ", instance: " + System.identityHashCode(this));
         this.opponentScore = 0;
-        this.timeLeft = 120; // 2 phút = 120 giây (BUG FIX: trước đây là 30 giây)
+        this.timeLeft = 300; // 5 phút = 300 giây
         this.gameEnded = false;
+        this.totalGrains = gameStartData.optInt("total_grains", 100); // Lấy tổng số hạt từ server
         
         // Lấy tên đối thủ từ gameStartData
         this.opponentUsername = gameStartData.optString("opponent_username", "Đối thủ");
@@ -277,7 +279,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
             // Yêu cầu cập nhật danh sách online (sau khi tạo MainMenuFrame)
             SwingUtilities.invokeLater(() -> {
                 JSONObject request = new JSONObject();
-                request.put("type", Protocol.GET_ONLINE_USERS);
+                request.put("type", Protocol.GET_ALL_USERS);
                 client.sendMessage(request.toString());
             });
         }
@@ -369,7 +371,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         // Yêu cầu cập nhật danh sách online (sau khi tạo MainMenuFrame)
         SwingUtilities.invokeLater(() -> {
             JSONObject request = new JSONObject();
-            request.put("type", Protocol.GET_ONLINE_USERS);
+            request.put("type", Protocol.GET_ALL_USERS);
             client.sendMessage(request.toString());
         });
     }
@@ -441,7 +443,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         // Yêu cầu cập nhật danh sách online (sau khi tạo MainMenuFrame)
         SwingUtilities.invokeLater(() -> {
             JSONObject request = new JSONObject();
-            request.put("type", Protocol.GET_ONLINE_USERS);
+            request.put("type", Protocol.GET_ALL_USERS);
             client.sendMessage(request.toString());
         });
     }
@@ -552,8 +554,8 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
                 System.out.println("📤 Sending SCORE_UPDATE: " + myScore);
                 client.sendMessage(packet.toString());
                 
-                // Kiểm tra nếu đạt điểm tối đa (10 điểm)
-                if (myScore >= 100) {
+                // Kiểm tra nếu đạt điểm tối đa (tất cả hạt)
+                if (myScore >= totalGrains) {
                     handleMaxScore();
                 }
                 
