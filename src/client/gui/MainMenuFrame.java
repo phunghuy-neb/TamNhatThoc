@@ -187,7 +187,7 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         cancelFindMatchButton = new JButton("Hủy Tìm Trận");
         cancelFindMatchButton.setPreferredSize(new Dimension(120, 35));
         cancelFindMatchButton.setBackground(new Color(244, 67, 54));
-        cancelFindMatchButton.setForeground(Color.WHITE);
+        cancelFindMatchButton.setForeground(Color.BLACK);
         cancelFindMatchButton.setFocusPainted(false);
         cancelFindMatchButton.setFont(new Font("Arial", Font.BOLD, 12));
         cancelFindMatchButton.addActionListener(e -> handleCancelFindMatch());
