@@ -27,6 +27,8 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
     
     private final List<JSONObject> allPlayers;
     private final List<JSONObject> filteredPlayers;
+    // Snapshot mapping of rows currently displayed in table → players
+    private final List<JSONObject> tableRows;
     
     public InvitePlayerDialog(JFrame parent, GameClient client, String currentUserId, String roomId) {
         super(parent, "Moi Nguoi Choi", true);
@@ -34,6 +36,7 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         this.currentUserId = currentUserId;
         this.allPlayers = new ArrayList<>();
         this.filteredPlayers = new ArrayList<>();
+        this.tableRows = new ArrayList<>();
         
         setSize(500, 400);
         setLocationRelativeTo(parent);
@@ -166,6 +169,7 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
     
     private void updateTable() {
         tableModel.setRowCount(0);
+        tableRows.clear();
         
         for (JSONObject player : filteredPlayers) {
             String username = player.getString("username");
@@ -200,6 +204,8 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
             if (canInvite) {
                 Object[] row = {username, totalScore, statusText, "Mời"};
                 tableModel.addRow(row);
+                // Keep row-to-player mapping in sync with the table snapshot
+                tableRows.add(player);
             }
         }
     }
@@ -208,27 +214,15 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         int selectedRow = playerTable.getSelectedRow();
         if (selectedRow == -1) return;
         
-        // Lấy username từ table
-        String targetUsername = (String) playerTable.getValueAt(selectedRow, 0);
+        // Resolve player strictly from current table snapshot
+        if (selectedRow >= tableRows.size()) return;
+        JSONObject selectedPlayer = tableRows.get(selectedRow);
+        String targetUsername = selectedPlayer.getString("username");
         
         // DEBUG: In ra để kiểm tra
         System.out.println("DEBUG: Selected row: " + selectedRow);
         System.out.println("DEBUG: Target username from table: " + targetUsername);
         System.out.println("DEBUG: Current user ID: " + currentUserId);
-        
-        // Tìm player trong filteredPlayers theo username
-        JSONObject selectedPlayer = null;
-        for (JSONObject player : filteredPlayers) {
-            String playerUsername = player.getString("username");
-            String playerUserId = String.valueOf(player.getInt("user_id"));
-            System.out.println("DEBUG: Checking player - username: " + playerUsername + ", user_id: " + playerUserId);
-            
-            if (playerUsername.equals(targetUsername)) {
-                selectedPlayer = player;
-                System.out.println("DEBUG: Found matching player!");
-                break;
-            }
-        }
         
         if (selectedPlayer == null) {
             JOptionPane.showMessageDialog(this,
@@ -343,9 +337,9 @@ public class InvitePlayerDialog extends JDialog implements GameClient.MessageLis
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
-                // Moi nguoi choi tai row nay
-                if (row < filteredPlayers.size()) {
-                    JSONObject player = filteredPlayers.get(row);
+                // Mời người chơi tại hàng hiện tại dựa trên snapshot tableRows
+                if (row < tableRows.size()) {
+                    JSONObject player = tableRows.get(row);
                     String targetUserId = String.valueOf(player.getInt("user_id"));
                     String targetUsername = player.getString("username");
                     

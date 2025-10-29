@@ -261,6 +261,9 @@ public class LoginFrame extends JFrame implements GameClient.MessageListener {
         String message = response.getString("message");
         JOptionPane.showMessageDialog(this, message, "Lỗi", 
             JOptionPane.ERROR_MESSAGE);
+        // Re-enable actions so user can retry after any error
+        loginButton.setEnabled(true);
+        registerButton.setEnabled(true);
     }
     
     /**
