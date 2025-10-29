@@ -308,6 +308,51 @@ public class DatabaseManager {
     }
     
     /**
+     * Kiểm tra username đã tồn tại chưa
+     */
+    public boolean isUsernameExists(String username) {
+        try {
+            Document userDoc = usersCollection.find(Filters.eq("username", username)).first();
+            return userDoc != null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Đổi tên đăng nhập
+     */
+    public boolean changeUsername(String userId, String newUsername) {
+        try {
+            // Tìm user document
+            Document userDoc = findUserDocument(userId);
+            if (userDoc == null) {
+                System.out.println("❌ User not found for username change");
+                return false;
+            }
+            
+            ObjectId userObjectId = userDoc.getObjectId("_id");
+            
+            // Cập nhật username mới
+            usersCollection.updateOne(
+                Filters.eq("_id", userObjectId),
+                Updates.set("username", newUsername)
+            );
+            
+            // BUG FIX #1: Invalidate cache sau khi update username
+            userCache.remove(userId);
+            System.out.println("🗑️ Cache invalidated for userId: " + userId);
+            
+            System.out.println("✅ Username changed successfully to: " + newUsername);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
      * Lấy bảng xếp hạng
      */
     public List<User> getLeaderboard(int limit) {

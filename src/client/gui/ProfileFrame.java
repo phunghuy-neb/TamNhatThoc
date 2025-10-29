@@ -17,10 +17,12 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
     
     private JLabel usernameLabel;
     private JLabel statsLabel;
+    private JTextField usernameField;
     private JPasswordField oldPasswordField;
     private JPasswordField newPasswordField;
     private JPasswordField confirmPasswordField;
     
+    private JButton changeUsernameButton;
     private JButton changePasswordButton;
     private JButton closeButton;
     
@@ -54,19 +56,30 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
         // ===== THÔNG TIN TÀI KHOẢN =====
-        JPanel infoPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         infoPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(new Color(76, 175, 80), 2),
             "Thông tin tài khoản",
             0, 0, new Font("Arial", Font.BOLD, 16)
         ));
-        infoPanel.setMaximumSize(new Dimension(500, 60));
+        infoPanel.setMaximumSize(new Dimension(500, 120));
         
-        // Username (read-only)
+        // Username (có thể sửa)
         infoPanel.add(new JLabel("👤 Tên đăng nhập:"));
-        usernameLabel = new JLabel(currentUser.optString("username", ""));
-        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        infoPanel.add(usernameLabel);
+        usernameField = new JTextField(currentUser.optString("username", ""));
+        usernameField.setFont(new Font("Arial", Font.BOLD, 14));
+        usernameField.setPreferredSize(new Dimension(150, 25));
+        infoPanel.add(usernameField);
+        
+        // Nút đổi tên
+        infoPanel.add(new JLabel(""));
+        changeUsernameButton = new JButton("✏️ Đổi Tên");
+        changeUsernameButton.setBackground(new Color(76, 175, 80));
+        changeUsernameButton.setForeground(Color.BLACK);
+        changeUsernameButton.setFocusPainted(false);
+        changeUsernameButton.setPreferredSize(new Dimension(100, 30));
+        changeUsernameButton.addActionListener(e -> handleChangeUsername());
+        infoPanel.add(changeUsernameButton);
         
         centerPanel.add(infoPanel);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -169,6 +182,61 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
         );
         
         statsLabel.setText(statsText);
+    }
+    
+    private void handleChangeUsername() {
+        String newUsername = usernameField.getText().trim();
+        String currentUsername = currentUser.optString("username", "");
+        
+        // Validation
+        if (newUsername.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Vui lòng nhập tên đăng nhập mới!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (newUsername.equals(currentUsername)) {
+            JOptionPane.showMessageDialog(this, 
+                "Tên đăng nhập mới phải khác tên hiện tại!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (newUsername.length() < 3) {
+            JOptionPane.showMessageDialog(this, 
+                "Tên đăng nhập phải có ít nhất 3 ký tự!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (newUsername.length() > 20) {
+            JOptionPane.showMessageDialog(this, 
+                "Tên đăng nhập không được quá 20 ký tự!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Kiểm tra ký tự hợp lệ (chỉ cho phép chữ cái, số, dấu gạch dưới)
+        if (!newUsername.matches("^[a-zA-Z0-9_]+$")) {
+            JOptionPane.showMessageDialog(this, 
+                "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới!", 
+                "Lỗi", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        JSONObject request = new JSONObject();
+        request.put("type", Protocol.UPDATE_PROFILE);
+        request.put("new_username", newUsername);
+        client.sendMessage(request.toString());
+        
+        changeUsernameButton.setEnabled(false);
+        changeUsernameButton.setText("Đang xử lý...");
     }
     
     private void handleChangePassword() {
@@ -289,14 +357,17 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
         currentUser.put("win_rate", data.getDouble("win_rate"));
         
         // Cập nhật UI
-        usernameLabel.setText(data.getString("username"));
+        usernameField.setText(data.getString("username"));
         updateStats();
     }
     
     private void handleUpdateSuccess(JSONObject response) {
         String message = response.optString("message", "Cập nhật thành công!");
+        String updateType = response.optString("update_type", "password");
         
-        // Re-enable button
+        // Re-enable buttons
+        changeUsernameButton.setEnabled(true);
+        changeUsernameButton.setText("✏️ Đổi Tên");
         changePasswordButton.setEnabled(true);
         changePasswordButton.setText("🔐 Đổi Mật Khẩu");
         
@@ -304,6 +375,13 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
         oldPasswordField.setText("");
         newPasswordField.setText("");
         confirmPasswordField.setText("");
+        
+        // Nếu đổi tên thành công, cập nhật currentUser
+        if ("username".equals(updateType)) {
+            String newUsername = response.optString("new_username", usernameField.getText());
+            currentUser.put("username", newUsername);
+            usernameField.setText(newUsername);
+        }
         
         JOptionPane.showMessageDialog(this, 
             message, 
@@ -314,7 +392,9 @@ public class ProfileFrame extends JFrame implements GameClient.MessageListener {
     private void handleError(JSONObject response) {
         String errorMessage = response.optString("message", "Có lỗi xảy ra!");
         
-        // Re-enable button
+        // Re-enable buttons
+        changeUsernameButton.setEnabled(true);
+        changeUsernameButton.setText("✏️ Đổi Tên");
         changePasswordButton.setEnabled(true);
         changePasswordButton.setText("🔐 Đổi Mật Khẩu");
         

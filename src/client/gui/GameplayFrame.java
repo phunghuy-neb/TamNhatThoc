@@ -59,7 +59,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         this.myScore = 0;
         System.out.println("🔍 Constructor - myScore initialized to: " + myScore + ", instance: " + System.identityHashCode(this));
         this.opponentScore = 0;
-        this.timeLeft = 300; // 5 phút = 300 giây
+        this.timeLeft = 150; // 2.5 phút = 150 giây
         this.gameEnded = false;
         this.totalGrains = gameStartData.optInt("total_grains", 100); // Lấy tổng số hạt từ server
         
@@ -113,7 +113,7 @@ public class GameplayFrame extends JFrame implements GameClient.MessageListener 
         infoPanel.setBackground(new Color(76, 175, 80));
         infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         
-        timerLabel = new JLabel("⏱️ Thời gian: 02:00");
+        timerLabel = new JLabel("⏱️ Thời gian: 02:30");
         timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         timerLabel.setForeground(Color.WHITE);
         timerLabel.setHorizontalAlignment(SwingConstants.CENTER);

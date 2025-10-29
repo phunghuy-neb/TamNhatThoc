@@ -1114,6 +1114,8 @@ public class ClientHandler implements Runnable {
             userObj.put("username", u.getUsername());
             userObj.put("total_score", u.getTotalScore());
             userObj.put("total_wins", u.getTotalWins());
+            userObj.put("total_losses", u.getTotalLosses());
+            userObj.put("total_draws", u.getTotalDraws());
             userObj.put("win_rate", u.getWinRate());
             rankings.put(userObj);
         }
@@ -1187,16 +1189,73 @@ public class ClientHandler implements Runnable {
             return;
         }
         
-        // Chỉ xử lý đổi mật khẩu - YÊU CẦU MẬT KHẨU CŨ
-        String oldPassword = packet.optString("old_password", "");
-        String newPassword = packet.optString("new_password", "");
-        
-        // Validation
-        if (oldPassword.isEmpty() || newPassword.isEmpty()) {
-            sendError(Protocol.ERR_INVALID_PACKET, "Mật khẩu không được để trống");
+        // Kiểm tra xem có đổi tên không
+        String newUsername = packet.optString("new_username", "");
+        if (!newUsername.isEmpty()) {
+            handleChangeUsername(newUsername);
             return;
         }
         
+        // Kiểm tra xem có đổi mật khẩu không
+        String oldPassword = packet.optString("old_password", "");
+        String newPassword = packet.optString("new_password", "");
+        
+        if (!oldPassword.isEmpty() && !newPassword.isEmpty()) {
+            handleChangePassword(oldPassword, newPassword);
+            return;
+        }
+        
+        // Nếu không có thông tin nào để cập nhật
+        sendError(Protocol.ERR_INVALID_PACKET, "Không có thông tin để cập nhật");
+    }
+    
+    private void handleChangeUsername(String newUsername) {
+        // Validation
+        if (newUsername.length() < 3) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Tên đăng nhập phải có ít nhất 3 ký tự");
+            return;
+        }
+        
+        if (newUsername.length() > 20) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Tên đăng nhập không được quá 20 ký tự");
+            return;
+        }
+        
+        if (!newUsername.matches("^[a-zA-Z0-9_]+$")) {
+            sendError(Protocol.ERR_INVALID_PACKET, "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới");
+            return;
+        }
+        
+        // Kiểm tra tên đã tồn tại chưa
+        if (server.getDbManager().isUsernameExists(newUsername)) {
+            sendError(Protocol.ERR_USERNAME_EXISTS, "Tên đăng nhập đã tồn tại");
+            return;
+        }
+        
+        // Cập nhật tên
+        boolean success = server.getDbManager().changeUsername(
+            String.valueOf(user.getUserId()),
+            newUsername
+        );
+        
+        if (success) {
+            // Cập nhật tên trong user object
+            user.setUsername(newUsername);
+            
+            JSONObject response = new JSONObject();
+            response.put("type", Protocol.UPDATE_SUCCESS);
+            response.put("update_type", "username");
+            response.put("new_username", newUsername);
+            response.put("message", "Đổi tên thành công!");
+            System.out.println("✅ Username changed for user: " + newUsername);
+            sendMessage(response.toString());
+        } else {
+            sendError(Protocol.ERR_INVALID_PACKET, "Không thể cập nhật tên đăng nhập");
+        }
+    }
+    
+    private void handleChangePassword(String oldPassword, String newPassword) {
+        // Validation
         if (newPassword.length() < 6) {
             sendError(Protocol.ERR_INVALID_PACKET, "Mật khẩu mới phải có ít nhất 6 ký tự");
             return;
@@ -1212,6 +1271,7 @@ public class ClientHandler implements Runnable {
         if (success) {
             JSONObject response = new JSONObject();
             response.put("type", Protocol.UPDATE_SUCCESS);
+            response.put("update_type", "password");
             response.put("message", "Đổi mật khẩu thành công!");
             System.out.println("✅ Password changed for user: " + user.getUsername());
             sendMessage(response.toString());

@@ -471,7 +471,7 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         
         JSONArray rankings = response.getJSONArray("rankings");
         
-        String[] columns = {"#", "Tên", "Điểm", "Thắng", "Tỷ lệ"};
+        String[] columns = {"#", "Tên", "Điểm", "Thắng", "Thua", "Hòa", "Tỷ lệ"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
         
         for (int i = 0; i < rankings.length(); i++) {
@@ -481,6 +481,8 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
                 user.getString("username"),
                 user.getInt("total_score"),
                 user.getInt("total_wins"),
+                user.getInt("total_losses"),
+                user.getInt("total_draws"),
                 String.format("%.1f%%", user.getDouble("win_rate"))
             });
         }
@@ -488,7 +490,7 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         JTable table = new JTable(model);
         table.setEnabled(false);
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(500, 400));
+        scrollPane.setPreferredSize(new Dimension(600, 400));
         
         JOptionPane.showMessageDialog(this, scrollPane, 
             "Bảng Xếp Hạng", JOptionPane.INFORMATION_MESSAGE);
