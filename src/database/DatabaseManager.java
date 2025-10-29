@@ -353,6 +353,15 @@ public class DatabaseManager {
     }
     
     /**
+     * Cập nhật cache user sau khi thay đổi thông tin
+     */
+    public void updateUserCache(User updatedUser) {
+        String userId = String.valueOf(updatedUser.getUserId());
+        userCache.put(userId, updatedUser);
+        System.out.println("✅ User cache updated: " + updatedUser.getUsername());
+    }
+    
+    /**
      * Lấy bảng xếp hạng
      */
     public List<User> getLeaderboard(int limit) {

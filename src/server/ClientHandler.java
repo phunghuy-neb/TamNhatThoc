@@ -497,6 +497,10 @@ public class ClientHandler implements Runnable {
         // Lưu lời mời
         server.addInvitation(String.valueOf(user.getUserId()), String.valueOf(toUserId), roomId);
         
+        // Debug: Kiểm tra username trước khi gửi
+        System.out.println("🔍 DEBUG: Before sending invitation - user.getUsername() = " + user.getUsername());
+        System.out.println("🔍 DEBUG: User object details - ID: " + user.getUserId() + ", Username: " + user.getUsername());
+        
         // Gửi lời mời
         JSONObject invitation = new JSONObject();
         invitation.put("type", Protocol.INVITATION);
@@ -506,7 +510,8 @@ public class ClientHandler implements Runnable {
         invitation.put("expires_in", 30);
         target.sendMessage(invitation.toString());
         
-        System.out.println("📨 Lời mời: " + user.getUsername() + " -> " + target.getUser().getUsername());
+        System.out.println("📨 Lời mời: " + user.getUsername() + " (ID: " + user.getUserId() + ") -> " + target.getUser().getUsername());
+        System.out.println("🔍 DEBUG: Invitation packet: " + invitation.toString());
     }
     
     private void handleInviteResponse(JSONObject packet) {
@@ -1239,15 +1244,26 @@ public class ClientHandler implements Runnable {
         );
         
         if (success) {
-            // Cập nhật tên trong user object
-            user.setUsername(newUsername);
+            // Reload user object từ database để đảm bảo có dữ liệu mới nhất
+            User updatedUser = server.getDbManager().getUserById(String.valueOf(user.getUserId()));
+            if (updatedUser != null) {
+                this.user = updatedUser;
+                System.out.println("✅ User object reloaded from database: " + updatedUser.getUsername());
+            } else {
+                // Fallback: chỉ cập nhật username trong object hiện tại
+                user.setUsername(newUsername);
+                System.out.println("⚠️ Could not reload user from database, updated local object only");
+            }
+            
+            // Cập nhật cache trong server
+            server.updateUserCache(this.user);
             
             JSONObject response = new JSONObject();
             response.put("type", Protocol.UPDATE_SUCCESS);
             response.put("update_type", "username");
             response.put("new_username", newUsername);
             response.put("message", "Đổi tên thành công!");
-            System.out.println("✅ Username changed for user: " + newUsername);
+            System.out.println("✅ Username changed for user: " + this.user.getUsername());
             sendMessage(response.toString());
         } else {
             sendError(Protocol.ERR_INVALID_PACKET, "Không thể cập nhật tên đăng nhập");

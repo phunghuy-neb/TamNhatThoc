@@ -449,6 +449,9 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         int fromUserId = response.getInt("from_user_id");
         String roomId = response.getString("room_id");
         
+        System.out.println("🔍 DEBUG: Received invitation - from_user: " + fromUser + ", from_user_id: " + fromUserId + ", room_id: " + roomId);
+        System.out.println("🔍 DEBUG: Full invitation packet: " + response.toString());
+        
         int result = JOptionPane.showConfirmDialog(this, 
             fromUser + " mời bạn vào phòng " + roomId + "\nChấp nhận?", 
             "Lời mời tham gia", 

@@ -266,6 +266,17 @@ public class GameServer {
         return dbManager;
     }
     
+    /**
+     * Cập nhật cache user sau khi thay đổi thông tin
+     */
+    public void updateUserCache(User updatedUser) {
+        // Cập nhật cache trong DatabaseManager
+        dbManager.updateUserCache(updatedUser);
+        
+        // Broadcast cập nhật danh sách người chơi
+        broadcastAllUsers();
+    }
+    
     public void shutdown() {
         running = false;
         try {
