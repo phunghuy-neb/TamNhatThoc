@@ -12,8 +12,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.AbstractCellEditor;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Màn hình chính sau khi đăng nhập
@@ -506,10 +507,11 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
     private void showHistory(JSONObject response) {
         JSONArray matches = response.getJSONArray("matches");
         
-        String[] columns = {"Đối thủ", "Điểm", "Kết quả"};
+        String[] columns = {"Thời gian", "Đối thủ", "Điểm", "Kết quả"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
         
         String myUsername = currentUser.getString("username");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
         for (int i = 0; i < matches.length(); i++) {
             JSONObject match = matches.getJSONObject(i);
@@ -525,7 +527,20 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
             String result = myScore > oppScore ? "🏆 Thắng" : 
                            myScore < oppScore ? "❌ Thua" : "🤝 Hòa";
             
+            // Format thời gian
+            String timeStr = "";
+            if (match.has("created_at")) {
+                try {
+                    long timestamp = match.getLong("created_at");
+                    Date date = new Date(timestamp);
+                    timeStr = dateFormat.format(date);
+                } catch (Exception e) {
+                    timeStr = "N/A";
+                }
+            }
+            
             model.addRow(new Object[]{
+                timeStr,
                 opponent,
                 myScore + " - " + oppScore,
                 result
@@ -534,8 +549,13 @@ public class MainMenuFrame extends JFrame implements GameClient.MessageListener 
         
         JTable table = new JTable(model);
         table.setEnabled(false);
+        // Set column widths
+        table.getColumn("Thời gian").setPreferredWidth(150);
+        table.getColumn("Đối thủ").setPreferredWidth(120);
+        table.getColumn("Điểm").setPreferredWidth(100);
+        table.getColumn("Kết quả").setPreferredWidth(100);
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(500, 400));
+        scrollPane.setPreferredSize(new Dimension(600, 400));
         
         JOptionPane.showMessageDialog(this, scrollPane, 
             "Lịch Sử Đấu", JOptionPane.INFORMATION_MESSAGE);
